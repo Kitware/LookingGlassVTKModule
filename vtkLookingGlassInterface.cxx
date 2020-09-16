@@ -104,7 +104,6 @@ vtkLookingGlassInterface::vtkLookingGlassInterface()
   this->QuiltTiles[0] = 5;
   this->QuiltTiles[1] = 9;
   this->QuiltTexture = vtkTextureObject::New();
-  this->Debug = 1;
 }
 
 //------------------------------------------------------------------------------
