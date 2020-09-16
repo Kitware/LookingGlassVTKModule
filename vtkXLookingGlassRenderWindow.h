@@ -20,12 +20,12 @@
 #ifndef vtkXLookingGlassRenderWindow_h
 #define vtkXLookingGlassRenderWindow_h
 
-#include "vtkRenderingLookingGlassModule.h" // For export macro
+#include "vtkLookingGlassModule.h" // For export macro
 #include "vtkXOpenGLRenderWindow.h"
 
 class vtkLookingGlassInterface;
 
-class VTKRENDERINGLOOKINGGLASS_EXPORT vtkXLookingGlassRenderWindow : public vtkXOpenGLRenderWindow
+class VTKLOOKINGGLASS_EXPORT vtkXLookingGlassRenderWindow : public vtkXOpenGLRenderWindow
 {
 public:
   static vtkXLookingGlassRenderWindow* New();

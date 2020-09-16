@@ -20,8 +20,8 @@
 #ifndef vtkLookingGlassInterface_h
 #define vtkLookingGlassInterface_h
 
+#include "vtkLookingGlassModule.h" // For export macro
 #include "vtkObject.h"
-#include "vtkRenderingLookingGlassModule.h" // For export macro
 
 class vtkCamera;
 class vtkOpenGLFramebufferObject;
@@ -30,7 +30,7 @@ class vtkOpenGLRenderWindow;
 class vtkTextureObject;
 class vtkWindow;
 
-class VTKRENDERINGLOOKINGGLASS_EXPORT vtkLookingGlassInterface : public vtkObject
+class VTKLOOKINGGLASS_EXPORT vtkLookingGlassInterface : public vtkObject
 {
 public:
   static vtkLookingGlassInterface* New();
