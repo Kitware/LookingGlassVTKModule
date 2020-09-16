@@ -1,0 +1,17 @@
+NAME
+  VTK::LookingGlass
+LIBRARY_NAME
+  vtkLookingGlass
+DEPENDS
+  VTK::RenderingOpenGL2
+PRIVATE_DEPENDS
+  VTK::opengl
+TEST_DEPENDS
+  VTK::CommonSystem
+  VTK::IOPLY
+  VTK::InteractionStyle
+  VTK::RenderingVolume
+  VTK::TestingCore
+  VTK::TestingRendering
+DESCRIPTION
+  "This module contains support for the LookingGlass 3D display."
