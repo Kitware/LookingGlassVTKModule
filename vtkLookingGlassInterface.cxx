@@ -451,21 +451,25 @@ void vtkLookingGlassInterface::DrawLightFieldInternal(
 
 void vtkLookingGlassInterface::ReleaseGraphicsResources(vtkWindow* w)
 {
-  assert("pre: w_exists" && w != nullptr);
-
-  if (this->QuiltTexture)
+  if (this->QuiltTexture && w)
   {
     this->QuiltTexture->ReleaseGraphicsResources(w);
   }
   if (this->RenderFramebuffer)
   {
-    this->RenderFramebuffer->ReleaseGraphicsResources(w);
+    if (w)
+    {
+      this->RenderFramebuffer->ReleaseGraphicsResources(w);
+    }
     this->RenderFramebuffer->UnRegister(this);
     this->RenderFramebuffer = nullptr;
   }
   if (this->QuiltFramebuffer)
   {
-    this->QuiltFramebuffer->ReleaseGraphicsResources(w);
+    if (w)
+    {
+      this->QuiltFramebuffer->ReleaseGraphicsResources(w);
+    }
     this->QuiltFramebuffer->UnRegister(this);
     this->QuiltFramebuffer = nullptr;
   }
