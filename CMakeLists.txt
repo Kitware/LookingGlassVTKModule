@@ -24,5 +24,5 @@ vtk_module_add_module(VTK::LookingGlass
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 vtk_module_find_package(PACKAGE HoloPlayCore)
-vtk_module_link(VTK::LookingGlass
+vtk_module_link(VTK::RenderingLookingGlass
     PRIVATE HoloPlayCore::HoloPlayCore)
