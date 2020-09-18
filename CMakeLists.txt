@@ -15,7 +15,7 @@ elseif (VTK_USE_COCOA)
   list(APPEND headers vtkCocoaLookingGlassRenderWindow.h)
 endif()
 
-vtk_module_add_module(VTK::LookingGlass
+vtk_module_add_module(VTK::RenderingLookingGlass
   CLASSES ${classes}
   SOURCES ${sources}
   HEADERS ${headers}
