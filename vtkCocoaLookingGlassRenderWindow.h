@@ -21,11 +21,11 @@
 #define vtkCocoaLookingGlassRenderWindow_h
 
 #include "vtkCocoaRenderWindow.h"
-#include "vtkLookingGlassModule.h" // For export macro
+#include "vtkRenderingLookingGlassModule.h" // For export macro
 
 class vtkLookingGlassInterface;
 
-class VTKLOOKINGGLASS_EXPORT vtkCocoaLookingGlassRenderWindow : public vtkCocoaRenderWindow
+class VTKRENDERINGLOOKINGGLASS_EXPORT vtkCocoaLookingGlassRenderWindow : public vtkCocoaRenderWindow
 {
 public:
   static vtkCocoaLookingGlassRenderWindow* New();

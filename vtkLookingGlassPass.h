@@ -20,7 +20,7 @@
 #ifndef vtkLookingGlassPass_h
 #define vtkLookingGlassPass_h
 
-#include "vtkLookingGlassModule.h" // For export macro
+#include "vtkRenderingLookingGlassModule.h" // For export macro
 #include "vtkOpenGLRenderPass.h"
 
 class vtkLookingGlassInterface;
@@ -29,7 +29,7 @@ class vtkOpenGLHelper;
 class vtkOpenGLRenderWindow;
 class vtkTextureObject;
 
-class VTKLOOKINGGLASS_EXPORT vtkLookingGlassPass : public vtkOpenGLRenderPass
+class VTKRENDERINGLOOKINGGLASS_EXPORT vtkLookingGlassPass : public vtkOpenGLRenderPass
 {
 public:
   static vtkLookingGlassPass* New();
