@@ -26,3 +26,18 @@ list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 vtk_module_find_package(PACKAGE HoloPlayCore)
 vtk_module_link(VTK::RenderingLookingGlass
     PRIVATE HoloPlayCore::HoloPlayCore)
+
+# Copy the FindHoloPlayCore.cmake file to the build directory
+if (DEFINED vtk_cmake_build_dir)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/FindHoloPlayCore.cmake"
+    "${vtk_cmake_build_dir}/FindHoloPlayCore.cmake"
+    COPYONLY)
+endif ()
+
+if (DEFINED vtk_cmake_destination)
+  install(
+    FILES "${CMAKE_CURRENT_SOURCE_DIR}/FindHoloPlayCore.cmake"
+    DESTINATION "${vtk_cmake_destination}"
+    COMPONENT   "development")
+endif ()
