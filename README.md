@@ -13,8 +13,9 @@ Testing\Cxx\TestLookingGlassPass.cxx
 ## Building
 
 When building VTK turn on the remote module by setting
-VTK_MODULE_ENABLE_VTK_LookingGlass to YES and specifying the HoloPlayCore
-include dir and library to where you have installed the HoloPlayCore SDK.
+VTK_MODULE_ENABLE_VTK_RenderingLookingGlass to YES and specifying the
+HoloPlayCore include dir and library to where you have installed the
+HoloPlayCore SDK.
 
 At this point build VTK as usual for your platform. We currently support
 Windows, OSX, and Linux platforms.
