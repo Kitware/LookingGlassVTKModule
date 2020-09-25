@@ -113,6 +113,28 @@ public:
   vtkGetMacro(DeviceIndex, int);
   //@}
 
+  //@{
+  /**
+   * Set/Get limit for the ratio of the far clipping plane to the focal
+   * distance. This is a mechanism to limit parallex and resulting
+   * ghosting when using the looking glass display. The typical value
+   * should be around 1.2.
+   */
+  vtkSetMacro(FarClippingLimit, double);
+  vtkGetMacro(FarClippingLimit, double);
+  //@}
+
+  //@{
+  /**
+   * Set/Get limit for the ratio of the near clipping plane to the focal
+   * distance. This is a mechanism to limit parallex and resulting
+   * ghosting when using the looking glass display. The typical value
+   * should be around 0.8.
+   */
+  vtkSetMacro(NearClippingLimit, double);
+  vtkGetMacro(NearClippingLimit, double);
+  //@}
+
   // helper method to return a window set to share the opengl lists with
   // the provided window. Such as when you want a desktop window and a
   // looking glass window to mirror it.
@@ -135,6 +157,9 @@ protected:
 
   // with multiple LookingGlass which one to use. Defaults to the first.
   int DeviceIndex;
+
+  double FarClippingLimit;
+  double NearClippingLimit;
 
   // see the respective Get methods for descriptions
   int DisplayPosition[2];

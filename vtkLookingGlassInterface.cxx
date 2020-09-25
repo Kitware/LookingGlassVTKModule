@@ -88,6 +88,8 @@ vtkStandardNewMacro(vtkLookingGlassInterface);
 vtkLookingGlassInterface::vtkLookingGlassInterface()
   : Connected(false)
   , DeviceIndex(0)
+  , FarClippingLimit(1.2)
+  , NearClippingLimit(0.8)
   , ViewAngle(30.0)
   , FinalBlend(nullptr)
   , Initialized(false)

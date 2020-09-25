@@ -120,8 +120,29 @@ void className::DoStereoRender()
            ++count)
       {
         // adjust camera
-        aren->GetActiveCamera()->DeepCopy(Cameras[count]);
-        this->Interface->AdjustCamera(aren->GetActiveCamera(), tile);
+        vtkCamera* cam = aren->GetActiveCamera();
+        cam->DeepCopy(Cameras[count]);
+        this->Interface->AdjustCamera(cam, tile);
+
+        // limit the clipping range to limit parallax
+        double* cRange = cam->GetClippingRange();
+        double cameraDistance = cam->GetDistance();
+
+        double nearClippingLimit = this->Interface->GetNearClippingLimit();
+        double farClippingLimit = this->Interface->GetFarClippingLimit();
+
+        double newRange[2];
+        newRange[0] = cRange[0];
+        newRange[1] = cRange[1];
+        if (cRange[0] < cameraDistance * nearClippingLimit)
+        {
+          newRange[0] = cameraDistance * nearClippingLimit;
+        }
+        if (cRange[1] > cameraDistance * farClippingLimit)
+        {
+          newRange[1] = cameraDistance * farClippingLimit;
+        }
+        cam->SetClippingRange(newRange);
       }
       this->Renderers->Render();
     }
