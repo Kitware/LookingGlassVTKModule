@@ -115,6 +115,15 @@ public:
 
   //@{
   /**
+   * Turn on/off use of near and far clipping limits.
+   */
+  vtkSetMacro(UseClippingLimits, bool);
+  vtkGetMacro(UseClippingLimits, bool);
+  vtkBooleanMacro(UseClippingLimits, bool);
+  //@}
+
+  //@{
+  /**
    * Set/Get limit for the ratio of the far clipping plane to the focal
    * distance. This is a mechanism to limit parallex and resulting
    * ghosting when using the looking glass display. The typical value
@@ -158,6 +167,7 @@ protected:
   // with multiple LookingGlass which one to use. Defaults to the first.
   int DeviceIndex;
 
+  bool UseClippingLimits;
   double FarClippingLimit;
   double NearClippingLimit;
 

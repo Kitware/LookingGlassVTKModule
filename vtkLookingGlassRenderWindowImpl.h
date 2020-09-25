@@ -125,24 +125,27 @@ void className::DoStereoRender()
         this->Interface->AdjustCamera(cam, tile);
 
         // limit the clipping range to limit parallax
-        double* cRange = cam->GetClippingRange();
-        double cameraDistance = cam->GetDistance();
-
-        double nearClippingLimit = this->Interface->GetNearClippingLimit();
-        double farClippingLimit = this->Interface->GetFarClippingLimit();
-
-        double newRange[2];
-        newRange[0] = cRange[0];
-        newRange[1] = cRange[1];
-        if (cRange[0] < cameraDistance * nearClippingLimit)
+        if (this->Interface->GetUseClippingLimits())
         {
-          newRange[0] = cameraDistance * nearClippingLimit;
+          double* cRange = cam->GetClippingRange();
+          double cameraDistance = cam->GetDistance();
+
+          double nearClippingLimit = this->Interface->GetNearClippingLimit();
+          double farClippingLimit = this->Interface->GetFarClippingLimit();
+
+          double newRange[2];
+          newRange[0] = cRange[0];
+          newRange[1] = cRange[1];
+          if (cRange[0] < cameraDistance * nearClippingLimit)
+          {
+            newRange[0] = cameraDistance * nearClippingLimit;
+          }
+          if (cRange[1] > cameraDistance * farClippingLimit)
+          {
+            newRange[1] = cameraDistance * farClippingLimit;
+          }
+          cam->SetClippingRange(newRange);
         }
-        if (cRange[1] > cameraDistance * farClippingLimit)
-        {
-          newRange[1] = cameraDistance * farClippingLimit;
-        }
-        cam->SetClippingRange(newRange);
       }
       this->Renderers->Render();
     }
