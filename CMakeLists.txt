@@ -26,6 +26,10 @@ list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 vtk_module_find_package(PACKAGE HoloPlayCore)
 vtk_module_link(VTK::RenderingLookingGlass
     PRIVATE HoloPlayCore::HoloPlayCore)
+if (APPLE)
+  vtk_module_link(VTK::RenderingLookingGlass
+    PRIVATE "-framework IOKit")
+endif ()
 
 # Copy the FindHoloPlayCore.cmake file to the build directory
 if (DEFINED vtk_cmake_build_dir)

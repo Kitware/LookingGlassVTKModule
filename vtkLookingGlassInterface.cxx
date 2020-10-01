@@ -80,6 +80,8 @@ vtkOpenGLRenderWindow* vtkLookingGlassInterface::CreateLookingGlassRenderWindow(
 #ifdef VTK_USE_COCOA
   return vtkCocoaLookingGlassRenderWindow::New();
 #endif
+
+  return nullptr;
 }
 
 vtkStandardNewMacro(vtkLookingGlassInterface);
@@ -147,10 +149,6 @@ vtkOpenGLRenderWindow* vtkLookingGlassInterface::CreateSharedLookingGlassRenderW
   renWin->SetSize(this->DisplaySize[0], this->DisplaySize[1]);
   renWin->SetPosition(this->DisplayPosition[0], this->DisplayPosition[1]);
   renWin->BordersOff();
-
-  // #ifdef VTK_USE_COCOA
-  //   renWin->FullScreenOn();
-  // #endif
 
   return renWin;
 }
