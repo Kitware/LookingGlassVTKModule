@@ -48,6 +48,11 @@ public:
    */
   void ReleaseGraphicsResources(vtkWindow*) override;
 
+  /**
+   * Give the window a chance to be created on the Looking Glass display.
+   */
+  void Initialize() override;
+
 protected:
   vtkCocoaLookingGlassRenderWindow();
   ~vtkCocoaLookingGlassRenderWindow() override;
