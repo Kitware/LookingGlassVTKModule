@@ -209,3 +209,9 @@ int* className::GetSize(void)
 
   return this->Superclass::GetSize();
 }
+
+//------------------------------------------------------------------------------
+void className::SetLGDeviceIndex(int index)
+{
+  this->Interface->SetDeviceIndex(index);
+}

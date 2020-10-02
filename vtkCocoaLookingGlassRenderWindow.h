@@ -53,6 +53,11 @@ public:
    */
   void Initialize() override;
 
+  /**
+   * Set index of the Looking Glass device on which this window should appear.
+   */
+  void SetLGDeviceIndex(int index);
+
 protected:
   vtkCocoaLookingGlassRenderWindow();
   ~vtkCocoaLookingGlassRenderWindow() override;

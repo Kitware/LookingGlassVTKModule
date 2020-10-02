@@ -48,6 +48,11 @@ public:
    */
   void ReleaseGraphicsResources(vtkWindow*) override;
 
+  /**
+   * Set index of the Looking Glass device on which this window should appear.
+   */
+  void SetLGDeviceIndex(int index);
+
 protected:
   vtkXLookingGlassRenderWindow();
   ~vtkXLookingGlassRenderWindow() override;
