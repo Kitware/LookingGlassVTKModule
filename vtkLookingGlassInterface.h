@@ -38,8 +38,10 @@ public:
 
   // create an OpenGLRenderWindow suitable for looking glass
   // just a convenience method to handle the OS specific subclasses
-  // in a generic manner.
-  static vtkOpenGLRenderWindow* CreateLookingGlassRenderWindow();
+  // in a generic manner. The deviceIndex argument specifies the
+  // index of the LookingGlass device on which the window should be placed
+  // (presently supported only on macOS).
+  static vtkOpenGLRenderWindow* CreateLookingGlassRenderWindow(int deviceIndex = 0);
 
   // Get the display posiiton for the looking glass device
   vtkGetVector2Macro(DisplayPosition, int);

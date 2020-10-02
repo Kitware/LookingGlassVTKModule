@@ -28,7 +28,7 @@
 int TestDragon(int argc, char* argv[])
 {
   vtkOpenGLRenderWindow *renderWindow =
-    vtkLookingGlassInterface::CreateLookingGlassRenderWindow();
+    vtkLookingGlassInterface::CreateLookingGlassRenderWindow(0);
   vtkNew<vtkRenderer> renderer;
   vtkNew<vtkRenderWindowInteractor> iren;
 
