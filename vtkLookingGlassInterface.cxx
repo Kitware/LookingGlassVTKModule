@@ -69,19 +69,21 @@ IN THE SOFTWARE.
 #endif
 
 //------------------------------------------------------------------------------
-vtkOpenGLRenderWindow* vtkLookingGlassInterface::CreateLookingGlassRenderWindow()
+vtkOpenGLRenderWindow* vtkLookingGlassInterface::CreateLookingGlassRenderWindow(int deviceIndex)
 {
 #ifdef WIN32
-  return vtkWin32LookingGlassRenderWindow::New();
+  auto renWin = vtkWin32LookingGlassRenderWindow::New();
 #endif
 #ifdef VTK_USE_X
-  return vtkXLookingGlassRenderWindow::New();
+  auto renWin = vtkXLookingGlassRenderWindow::New();
 #endif
 #ifdef VTK_USE_COCOA
-  return vtkCocoaLookingGlassRenderWindow::New();
+  auto renWin = vtkCocoaLookingGlassRenderWindow::New();
 #endif
 
-  return nullptr;
+  renWin->SetLGDeviceIndex(deviceIndex);
+
+  return renWin;
 }
 
 vtkStandardNewMacro(vtkLookingGlassInterface);
