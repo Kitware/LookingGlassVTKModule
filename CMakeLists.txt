@@ -19,6 +19,19 @@ if (VTK_VERSION VERSION_LESS 8.90)
 endif ()
 
 option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
+option(BUILD_TESTING "Build the tests" OFF)
+if(BUILD_TESTING)
+  enable_testing()
+endif()
+
+list(APPEND ExternalData_URL_TEMPLATES
+  # Data published by Girder
+  "https://data.kitware.com/api/v1/file/hashsum/%(algo)/%(hash)/download"
+
+  # Data published by developers using git-gitlab-push.
+  "https://www.vtk.org/files/ExternalData/%(algo)/%(hash)"
+)
+include(ExternalData)
 
 # Wrap Python option
 if (VTK_WRAP_PYTHON)
@@ -78,8 +91,10 @@ vtk_module_build(
   SOVERSION             "1"
   TEST_DATA_TARGET      ${PROJECT_NAME}Data
   USE_EXTERNAL          "1"
-  TEST_INPUT_DATA_DIRECTORY   "${_test_data_directory_input}"
-  TEST_OUTPUT_DATA_DIRECTORY  "${_test_data_directory_output}")
+  TEST_INPUT_DATA_DIRECTORY   "${CMAKE_CURRENT_SOURCE_DIR}/Source/Testing"
+  TEST_OUTPUT_DATA_DIRECTORY  "${CMAKE_CURRENT_BINARY_DIR}/Source/Testing")
+
+ExternalData_Add_Target(${PROJECT_NAME}Data)
 
 if (BUILD_PYTHON_WRAPPERS)
   find_package(PythonInterp ${VTK_PYTHON_VERSION} QUIET)
