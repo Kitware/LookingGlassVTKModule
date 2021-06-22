@@ -24,11 +24,13 @@
 #include "vtkObject.h"
 
 class vtkCamera;
+class vtkGenericMovieWriter;
 class vtkOpenGLFramebufferObject;
 class vtkOpenGLQuadHelper;
 class vtkOpenGLRenderWindow;
 class vtkTextureObject;
 class vtkWindow;
+class vtkWindowToImageFilter;
 
 class VTKRENDERINGLOOKINGGLASS_EXPORT vtkLookingGlassInterface : public vtkObject
 {
@@ -151,6 +153,64 @@ public:
   // looking glass window to mirror it.
   vtkOpenGLRenderWindow* CreateSharedLookingGlassRenderWindow(vtkOpenGLRenderWindow* srcWin);
 
+  /**
+   * Save the quilt currently displayed in the render window as a PNG file.
+   * The quilt can be loaded into HoloPlay Studio to run the Looking Glass
+   * device in stand-alone mode.
+   *
+   * This will re-render the render window twice: once to render the quilt
+   * image that will be written to the PNG file, and once to
+   * restore the render window back to its original state.
+   */
+  void SaveQuilt(vtkOpenGLRenderWindow* rw, const char* fileName);
+
+  /**
+   * Get the extension of the movie file that will be written if the
+   * user records a video quilt.
+   * This will be "mp4", "avi", or "ogg", depending on what is available
+   * from the VTK build.
+   * MP4 will be used if it is available, since it is the only one that
+   * HoloPlay Studio can read in.
+   * If one of the other formats are used, the user will have to use external
+   * software to convert it to a format that HoloPlay Studio can read.
+   */
+  static const char* MovieFileExtension();
+
+  /**
+   * Check if the quilt is currently being recorded.
+   */
+  bool IsRecordingQuilt() const { return this->IsRecording; }
+
+  /**
+   * Start recording the quilt from the render window display and save it as
+   * a movie file. WriteQuiltMovieFrame() should be called each time a
+   * frame should be written. This will preferably happen immediately
+   * before rendering to the device.
+   *
+   * The quilt can be loaded into HoloPlay Studio to run the Looking Glass
+   * device in stand-alone mode, although the user may need to convert the
+   * video file into a format that HoloPlay Studio can read.
+   */
+  void StartRecordingQuilt(vtkOpenGLRenderWindow* rw, const char* fileName);
+
+  /**
+   * Write a frame to the movie file. StartRecordingQuilt() must have been
+   * called previously. This will re-render the render window with
+   * the quilt displayed on it for saving the frame. Thus, it is preferable
+   * to render immediately after writing a movie frame, so the quilt
+   * will not be displayed on the device.
+   */
+  void WriteQuiltMovieFrame();
+
+  /**
+   * Stop recording the quilt to finish the movie file.
+   *
+   * The quilt can be loaded into HoloPlay Studio to run the Looking Glass
+   * device in stand-alone mode, although the user may need to convert the
+   * video file into a format that HoloPlay Studio can read.
+   */
+  void StopRecordingQuilt();
+
 protected:
   vtkLookingGlassInterface();
   ~vtkLookingGlassInterface() override;
@@ -165,6 +225,7 @@ protected:
   vtkOpenGLFramebufferObject* QuiltFramebuffer;
   vtkTextureObject* QuiltTexture;
   vtkOpenGLQuadHelper* FinalBlend;
+  vtkOpenGLQuadHelper* QuiltBlend;
 
   // with multiple LookingGlass which one to use. Defaults to the first.
   int DeviceIndex;
@@ -189,6 +250,16 @@ protected:
 
   // are we connected to a looking glass device
   bool Connected;
+
+  // Are we saving a quilt
+  bool SavingQuilt;
+
+  // Are we recording a movie
+  bool IsRecording;
+
+  // For recording a movie
+  vtkWindowToImageFilter* MovieWindowToImageFilter;
+  vtkGenericMovieWriter* MovieWriter;
 
   void DrawLightFieldInternal(vtkOpenGLRenderWindow* renWin, vtkTextureObject* tex);
 
