@@ -110,6 +110,16 @@ public:
 
   //@{
   /**
+   * Set/Get the magnification used for quilt images/movies. Higher
+   * magnification will produce higher resolution files.
+   * The default setting is 2.
+   */
+  vtkSetClampMacro(QuiltExportMagnification, int, 1, VTK_INT_MAX);
+  vtkGetMacro(QuiltExportMagnification, int);
+  //@}
+
+  //@{
+  /**
    * Set/Get which LookingGlass device to use. DeviceIndex starts at 0 and
    * increases.
    */
@@ -244,6 +254,10 @@ protected:
   int NumberOfTiles;
 
   int QuiltQuality;
+
+  // The magnification factor for exporting quilt images/movies.
+  // Higher magnification produces higher resolution files.
+  int QuiltExportMagnification;
 
   // has the interface been initialized
   bool Initialized;
