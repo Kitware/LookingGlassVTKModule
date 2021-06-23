@@ -44,15 +44,18 @@ IN THE SOFTWARE.
 
 #include "vtkCamera.h"
 #include "vtkMath.h"
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkOpenGLFramebufferObject.h"
 #include "vtkOpenGLQuadHelper.h"
 #include "vtkOpenGLRenderWindow.h"
 #include "vtkOpenGLShaderCache.h"
 #include "vtkOpenGLState.h"
+#include "vtkPNGWriter.h"
 #include "vtkShaderProgram.h"
 #include "vtkTextureObject.h"
 #include "vtkVectorOperators.h"
+#include "vtkWindowToImageFilter.h"
 
 #include "vtk_glew.h"
 
@@ -67,6 +70,31 @@ IN THE SOFTWARE.
 #ifdef VTK_USE_COCOA
 #include "vtkCocoaLookingGlassRenderWindow.h"
 #endif
+
+#ifdef WIN32
+// Use the MP4 writer on Windows
+#include "vtkMP4Writer.h"
+using MovieWriterClass = vtkMP4Writer;
+static const char* MovieExtension = "mp4";
+#else
+// If not Windows, use FFMPEG if it is available
+#if VTK_MODULE_ENABLE_VTK_IOFFMPEG
+#include "vtkFFMPEGWriter.h"
+using MovieWriterClass = vtkFFMPEGWriter;
+static const char* MovieExtension = "avi";
+#else
+// Otherwise, use Ogg Theora.
+#include "vtkOggTheoraWriter.h"
+using MovieWriterClass = vtkOggTheoraWriter;
+static const char* MovieExtension = "ogg";
+#endif
+#endif
+
+//------------------------------------------------------------------------------
+const char* vtkLookingGlassInterface::MovieFileExtension()
+{
+  return MovieExtension;
+}
 
 //------------------------------------------------------------------------------
 vtkOpenGLRenderWindow* vtkLookingGlassInterface::CreateLookingGlassRenderWindow(int deviceIndex)
@@ -91,16 +119,22 @@ vtkStandardNewMacro(vtkLookingGlassInterface);
 //------------------------------------------------------------------------------
 vtkLookingGlassInterface::vtkLookingGlassInterface()
   : Connected(false)
+  , SavingQuilt(false)
   , DeviceIndex(0)
   , UseClippingLimits(false)
   , FarClippingLimit(1.2)
   , NearClippingLimit(0.8)
   , ViewAngle(30.0)
   , FinalBlend(nullptr)
+  , QuiltBlend(nullptr)
   , Initialized(false)
   , RenderFramebuffer(nullptr)
   , QuiltFramebuffer(nullptr)
   , QuiltQuality(1)
+  , QuiltExportMagnification(2)
+  , IsRecording(false)
+  , MovieWindowToImageFilter(nullptr)
+  , MovieWriter(nullptr)
 {
   this->DisplayPosition[0] = 0;
   this->DisplayPosition[1] = 0;
@@ -116,6 +150,11 @@ vtkLookingGlassInterface::vtkLookingGlassInterface()
 //------------------------------------------------------------------------------
 vtkLookingGlassInterface::~vtkLookingGlassInterface()
 {
+  if (this->IsRecording)
+  {
+    this->StopRecordingQuilt();
+  }
+
   if (this->RenderFramebuffer != nullptr)
   {
     vtkErrorMacro(<< "Render Framebuffer should have been deleted in "
@@ -135,6 +174,23 @@ vtkLookingGlassInterface::~vtkLookingGlassInterface()
   {
     delete this->FinalBlend;
     this->FinalBlend = nullptr;
+  }
+  if (this->QuiltBlend != nullptr)
+  {
+    delete this->QuiltBlend;
+    this->QuiltBlend = nullptr;
+  }
+
+  if (this->MovieWindowToImageFilter != nullptr)
+  {
+    this->MovieWindowToImageFilter->Delete();
+    this->MovieWindowToImageFilter = nullptr;
+  }
+
+  if (this->MovieWriter != nullptr)
+  {
+    this->MovieWriter->Delete();
+    this->MovieWriter = nullptr;
   }
 
   // must tear down the message pipe before shut down the app
@@ -360,52 +416,68 @@ void vtkLookingGlassInterface::DrawLightField(vtkOpenGLRenderWindow* renWin)
 void vtkLookingGlassInterface::DrawLightFieldInternal(
   vtkOpenGLRenderWindow* renWin, vtkTextureObject* tex)
 {
-  if (!this->FinalBlend)
-  {
-    // use a simple vertex shader
-    std::string vshader =
-      R"***(
+  // Simple default vertex and fragment shaders
+  static const std::string defaultVS =
+    R"***(
+    //VTK::System::Dec
+    in vec4 ndCoordIn;
+    in vec2 texCoordIn;
+    out vec2 texCoords;
+    void main()
+    {
+      gl_Position = ndCoordIn;
+      texCoords = texCoordIn;
+    }
+  )***";
+
+  static const std::string defaultFS =
+    R"***(
       //VTK::System::Dec
-      in vec4 ndCoordIn;
-      in vec2 texCoordIn;
-      out vec2 texCoords;
+
+      in vec2 texCoords;
+      out vec4 fragColor;
+      uniform sampler2D screenTex;
       void main()
       {
-        gl_Position = ndCoordIn;
-        texCoords = texCoordIn;
+    		fragColor = vec4(texture(screenTex, texCoords.xy).rgb, 1.0);
       }
-    )***";
+  )***";
 
-    // just add the standard VTK header to the fragment shader
-    std::string fshader = "//VTK::System::Dec\n\n";
+  vtkOpenGLQuadHelper* blend = nullptr;
 
-    if (this->Connected)
+  if (this->SavingQuilt || !this->Connected)
+  {
+    // Use the QuiltBlend
+    if (!this->QuiltBlend)
     {
-      fshader += hpc_LightfieldFragShaderGLSL;
+      this->QuiltBlend = new vtkOpenGLQuadHelper(renWin, defaultVS.c_str(), defaultFS.c_str(), "");
     }
     else
     {
-      fshader +=
-        R"***(
-          in vec2 texCoords;
-          out vec4 fragColor;
-          uniform sampler2D screenTex;
-          void main()
-          {
-        		fragColor = vec4(texture(screenTex, texCoords.xy).rgb, 1.0);
-          }
-      )***";
+      renWin->GetShaderCache()->ReadyShaderProgram(this->QuiltBlend->Program);
     }
-    this->FinalBlend = new vtkOpenGLQuadHelper(renWin, vshader.c_str(), fshader.c_str(), "");
+    blend = this->QuiltBlend;
   }
   else
   {
-    renWin->GetShaderCache()->ReadyShaderProgram(this->FinalBlend->Program);
+    // Use the FinalBlend
+    if (!this->FinalBlend)
+    {
+      // just add the standard VTK header to the fragment shader
+      std::string fshader = "//VTK::System::Dec\n\n";
+      fshader += hpc_LightfieldFragShaderGLSL;
+      this->FinalBlend = new vtkOpenGLQuadHelper(renWin, defaultVS.c_str(), fshader.c_str(), "");
+    }
+    else
+    {
+      renWin->GetShaderCache()->ReadyShaderProgram(this->FinalBlend->Program);
+    }
+    blend = this->FinalBlend;
   }
 
-  if (this->FinalBlend->Program)
+  if (blend->Program)
   {
-    auto& prog = this->FinalBlend->Program;
+    auto& prog = blend->Program;
 
     if (this->Connected)
     {
@@ -444,7 +516,7 @@ void vtkLookingGlassInterface::DrawLightFieldInternal(
     prog->SetUniformi("screenTex", tex->GetTextureUnit());
 
     // draw the full screen quad using the special shader
-    this->FinalBlend->Render();
+    blend->Render();
 
     tex->Deactivate();
 
@@ -480,6 +552,11 @@ void vtkLookingGlassInterface::ReleaseGraphicsResources(vtkWindow* w)
   {
     delete this->FinalBlend;
     this->FinalBlend = nullptr;
+  }
+  if (this->QuiltBlend)
+  {
+    delete this->QuiltBlend;
+    this->QuiltBlend = nullptr;
   }
 }
 
@@ -548,4 +625,128 @@ void vtkLookingGlassInterface::GetTilePosition(int tile, int pos[2])
 {
   pos[0] = (tile % this->QuiltTiles[0]) * this->RenderSize[0];
   pos[1] = (tile / this->QuiltTiles[0]) * this->RenderSize[1];
+}
+
+void vtkLookingGlassInterface::SaveQuilt(vtkOpenGLRenderWindow* rw, const char* fileName)
+{
+  // Make a deep copy of the render window, render the quilt, and save it
+  vtkNew<vtkWindowToImageFilter> filter;
+  filter->ShouldRerenderOff();
+  filter->SetInput(rw);
+
+  // Increase magnification to produce higher resolution images
+  // vtkWindowToImageFilter::SetScale() doesn't seem to do what we want...
+  int prevDisplaySize[2] = { this->DisplaySize[0], this->DisplaySize[1] };
+
+  this->DisplaySize[0] = this->QuiltExportMagnification * prevDisplaySize[0];
+  this->DisplaySize[1] = this->QuiltExportMagnification * prevDisplaySize[1];
+  rw->SetSize(this->DisplaySize);
+
+  // Render once while saving the quilt. This will render the quilt image
+  // on the render window. Then we will write out the image.
+  // In ParaView, this will perform only the quad render via calling
+  // DrawLightField(). It will not re-render the quilt images.
+  this->SavingQuilt = true;
+  rw->Render();
+  this->SavingQuilt = false;
+
+  vtkNew<vtkPNGWriter> writer;
+  writer->SetFileName(fileName);
+  writer->SetInputConnection(filter->GetOutputPort());
+  writer->Write();
+
+  // Restore previous resolution settings
+  this->DisplaySize[0] = prevDisplaySize[0];
+  this->DisplaySize[1] = prevDisplaySize[1];
+  rw->SetSize(this->DisplaySize);
+
+  // Render again for the correct LG display.
+  rw->Render();
+}
+
+void vtkLookingGlassInterface::StartRecordingQuilt(vtkOpenGLRenderWindow* rw, const char* fileName)
+{
+  if (this->IsRecording)
+  {
+    // Already recording
+    return;
+  }
+
+  // Create necessary objects
+  if (!this->MovieWindowToImageFilter)
+  {
+    this->MovieWindowToImageFilter = vtkWindowToImageFilter::New();
+    this->MovieWindowToImageFilter->ShouldRerenderOff();
+    this->MovieWindowToImageFilter->ReadFrontBufferOff();
+  }
+
+  if (!this->MovieWriter)
+  {
+    this->MovieWriter = MovieWriterClass::New();
+  }
+
+  auto filter = this->MovieWindowToImageFilter;
+  auto writer = this->MovieWriter;
+
+  filter->SetInput(rw);
+  filter->Update();
+
+  writer->SetInputConnection(filter->GetOutputPort());
+  writer->SetFileName(fileName);
+  writer->Start();
+
+  this->IsRecording = true;
+}
+
+void vtkLookingGlassInterface::WriteQuiltMovieFrame()
+{
+  if (!this->IsRecording)
+  {
+    return;
+  }
+
+  auto filter = this->MovieWindowToImageFilter;
+  auto writer = this->MovieWriter;
+  auto rw = filter->GetInput();
+
+  // Increase magnification to produce higher resolution images
+  // vtkWindowToImageFilter::SetScale() doesn't seem to do what we want...
+  int prevDisplaySize[2] = { this->DisplaySize[0], this->DisplaySize[1] };
+
+  this->DisplaySize[0] = this->QuiltExportMagnification * prevDisplaySize[0];
+  this->DisplaySize[1] = this->QuiltExportMagnification * prevDisplaySize[1];
+  rw->SetSize(this->DisplaySize);
+
+  // Render once while saving the quilt. This will render the quilt image
+  // on the render window. Then we will write out the image.
+  // In ParaView, this will perform only the quad render via calling
+  // DrawLightField(). It will not re-render the quilt images.
+  this->SavingQuilt = true;
+  rw->Render();
+  this->SavingQuilt = false;
+
+  filter->Modified();
+  writer->Write();
+
+  // Restore previous resolution settings
+  this->DisplaySize[0] = prevDisplaySize[0];
+  this->DisplaySize[1] = prevDisplaySize[1];
+  rw->SetSize(this->DisplaySize);
+}
+
+void vtkLookingGlassInterface::StopRecordingQuilt()
+{
+  if (!this->IsRecording)
+  {
+    // Not recording...
+    return;
+  }
+
+  auto filter = this->MovieWindowToImageFilter;
+  auto writer = this->MovieWriter;
+  auto rw = filter->GetInput();
+
+  writer->End();
+
+  this->IsRecording = false;
 }
