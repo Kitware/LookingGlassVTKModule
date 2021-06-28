@@ -86,7 +86,7 @@ static const char* MovieExtension = "avi";
 // Otherwise, use Ogg Theora.
 #include "vtkOggTheoraWriter.h"
 using MovieWriterClass = vtkOggTheoraWriter;
-static const char* MovieExtension = "ogg";
+static const char* MovieExtension = "ogv";
 #endif
 #endif
 
