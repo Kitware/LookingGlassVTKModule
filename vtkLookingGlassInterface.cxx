@@ -346,6 +346,11 @@ void vtkLookingGlassInterface::Initialize(void)
 
   this->SetupQuiltSettings(this->QuiltQuality);
 
+  if (this->DisplaySize[0] < this->DisplaySize[1])
+  {
+    std::swap(this->QuiltTiles[0], this->QuiltTiles[1]);
+  }
+
   this->NumberOfTiles = this->QuiltTiles[0] * this->QuiltTiles[1];
 
   // compute the render size we need
