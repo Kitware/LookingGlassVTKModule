@@ -39,6 +39,13 @@ if (DEFINED vtk_cmake_build_dir)
     COPYONLY)
 endif ()
 
+if (DEFINED vtk_cmake_destination AND VTK_BINARY_DIR)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/FindHoloPlayCore.cmake"
+    "${VTK_BINARY_DIR}/${vtk_cmake_destination}/FindHoloPlayCore.cmake"
+    COPYONLY)
+endif ()
+
 if (DEFINED vtk_cmake_destination)
   install(
     FILES "${CMAKE_CURRENT_SOURCE_DIR}/FindHoloPlayCore.cmake"
