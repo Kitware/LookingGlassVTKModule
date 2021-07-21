@@ -124,6 +124,13 @@ void className::DoStereoRender()
         cam->DeepCopy(Cameras[count]);
         this->Interface->AdjustCamera(cam, tile);
 
+        // Lock aspect ratio to the size of the device. Otherwise it would be
+        // computed from this class GetSize() method and could be inverted
+        // depending on the quilt size.
+        double aspect = static_cast<double>(origSize[0]) / origSize[1];
+        cam->SetExplicitAspectRatio(aspect);
+        cam->UseExplicitAspectRatioOn();
+
         // limit the clipping range to limit parallax
         if (this->Interface->GetUseClippingLimits())
         {
