@@ -294,10 +294,10 @@ void vtkLookingGlassInterface::SetupQuiltSettings(int preset)
   switch (preset)
   {
     case 0: // standard
-      this->QuiltSize[0] = 2048;
-      this->QuiltSize[1] = 2048;
-      this->QuiltTiles[0] = 4;
-      this->QuiltTiles[1] = 8;
+      this->QuiltSize[0] = 3360;
+      this->QuiltSize[1] = 3360;
+      this->QuiltTiles[0] = 8;
+      this->QuiltTiles[1] = 6;
       break;
     default:
     case 1: // hires
