@@ -39,6 +39,8 @@ if (DEFINED vtk_cmake_build_dir)
     COPYONLY)
 endif ()
 
+# Workaround limitation of VTK build-system preventing export module specific CMake variables
+# in module config files.
 if (DEFINED vtk_cmake_destination AND VTK_BINARY_DIR)
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/FindHoloPlayCore.cmake"
