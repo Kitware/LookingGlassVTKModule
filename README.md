@@ -69,11 +69,11 @@ Python wrapped VTK if this module was enabled when it was compiled.
 
 ## Rendering to a display and generating Quilts
 
-The key functionality of this module is held in `vtkLookingGlassInterface`
+The key functionality of this module is held in the `vtkLookingGlassInterface`
 class.  It is used by the render window classes and by the render pass
 implementations. In theory, this module should be able to generate and
 display quilt images even if no Looking Glass hardware is present, but
-that capabilities has not been extensively tested.
+those capabilities has not been extensively tested.
 
 ## Developement/Bug Reports
 
