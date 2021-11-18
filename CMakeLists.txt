@@ -10,10 +10,17 @@ if (VTK_USE_X)
   list(APPEND classes vtkXLookingGlassRenderWindow)
 elseif (WIN32)
   list(APPEND classes vtkWin32LookingGlassRenderWindow)
+  if (NOT VTK_USE_MICROSOFT_MEDIA_FOUNDATION OR NOT VTK_USE_VIDEO_FOR_WINDOWS)
+    message(FATAL_ERROR
+      "LookingGlass module requires"
+       " VTK_USE_MICROSOFT_MEDIA_FOUNDATION and"
+       " VTK_USE_VIDEO_FOR_WINODWS to be set to ON" )
+  endif()
 elseif (VTK_USE_COCOA)
   list(APPEND sources vtkCocoaLookingGlassRenderWindow.mm)
   list(APPEND headers vtkCocoaLookingGlassRenderWindow.h)
 endif()
+
 
 vtk_module_add_module(VTK::RenderingLookingGlass
   CLASSES ${classes}
@@ -25,7 +32,7 @@ list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 vtk_module_find_package(PACKAGE HoloPlayCore)
 vtk_module_link(VTK::RenderingLookingGlass
-    PRIVATE HoloPlayCore::HoloPlayCore)
+    PUBLIC HoloPlayCore::HoloPlayCore)
 if (APPLE)
   vtk_module_link(VTK::RenderingLookingGlass
     PRIVATE "-framework IOKit")
