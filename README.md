@@ -45,6 +45,7 @@ When configuring VTK using CMake, enable this remote module and its dependencies
 You must also specify
 1. HoloPlayCore_INCLUDE_DIR
 2. HoloPlayCore_LIBRARY
+
 based on where you have installed the HoloPlayCore SDK, if they are not
 automatically found.
 
