@@ -2,6 +2,8 @@ NAME
   VTK::RenderingLookingGlass
 LIBRARY_NAME
   vtkRenderingLookingGlass
+LICENSE_FILES
+  LICENSE
 DEPENDS
   VTK::RenderingOpenGL2
 PRIVATE_DEPENDS
