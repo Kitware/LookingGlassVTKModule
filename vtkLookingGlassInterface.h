@@ -23,6 +23,8 @@
 #include "vtkRenderingLookingGlassModule.h" // For export macro
 #include "vtkObject.h"
 
+#include <functional>
+
 class vtkCamera;
 class vtkGenericMovieWriter;
 class vtkOpenGLFramebufferObject;
@@ -162,6 +164,14 @@ public:
   // the provided window. Such as when you want a desktop window and a
   // looking glass window to mirror it.
   vtkOpenGLRenderWindow* CreateSharedLookingGlassRenderWindow(vtkOpenGLRenderWindow* srcWin);
+
+  // Render the quilt using the provided render window. The `renderFunc` is an
+  // optional function to use for rendering instead of the `Render()` function
+  // on the renderers. This is important when custom rendering is required,
+  // such as in a vtkRenderPass, like the vtkLookingGlassPass. Note that you
+  // may need to modify the size of the render window to be that of the
+  // vtkLookingGlassInterface::GetRenderSize() before calling this function.
+  void RenderQuilt(vtkOpenGLRenderWindow* rw, std::function<void(void)>* renderFunc = nullptr);
 
   /**
    * Save the quilt currently displayed in the render window as a PNG file.
