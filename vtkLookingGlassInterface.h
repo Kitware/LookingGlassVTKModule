@@ -22,6 +22,8 @@
 
 #include "vtkRenderingLookingGlassModule.h" // For export macro
 #include "vtkObject.h"
+#include "vtkRenderingLookingGlassModule.h" // For export macro
+#include <map>
 
 class vtkCamera;
 class vtkGenericMovieWriter;
@@ -222,11 +224,29 @@ public:
   void StopRecordingQuilt();
 
 protected:
+  /**
+   * struct to hold device specfic settings.
+   */
+  struct DeviceSettings
+  {
+    DeviceSettings(const std::string& name, int quiltWidth, int quiltHeight,
+                   int quiltTilesColumns, int quiltTilesRows);
+    DeviceSettings() = default;
+    int QuiltSize[2];
+    int QuiltTiles[2];
+    std::string Name;
+  };
+
   vtkLookingGlassInterface();
   ~vtkLookingGlassInterface() override;
 
   bool GetLookingGlassInfo();
   void SetupQuiltSettings(int i);
+
+  /**
+   * Get the device setting by device type.
+   */
+  static std::map<std::string, DeviceSettings> GetSettingsByDevice();
 
   /**
    * Graphics resources.
