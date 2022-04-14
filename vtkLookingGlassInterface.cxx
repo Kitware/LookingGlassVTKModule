@@ -140,10 +140,6 @@ vtkLookingGlassInterface::vtkLookingGlassInterface()
   this->DisplayPosition[1] = 0;
   this->DisplaySize[0] = 1280;
   this->DisplaySize[1] = 720;
-  this->QuiltSize[0] = 4096;
-  this->QuiltSize[1] = 4096;
-  this->QuiltTiles[0] = 5;
-  this->QuiltTiles[1] = 9;
   this->QuiltTexture = vtkTextureObject::New();
 }
 
