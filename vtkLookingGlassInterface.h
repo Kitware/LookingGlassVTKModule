@@ -253,6 +253,16 @@ protected:
   void SetupQuiltSettings(int i);
 
   /**
+   * Setup quilt settings based on device type.
+   */
+  void SetupQuiltSettings(const std::string& deviceType);
+
+  /**
+   * Setup quilt settings based on device type.
+   */
+  void SetupQuiltSettings(const DeviceSettings& deviceSettings);
+
+  /**
    * Get the device setting by device type.
    */
   static std::map<std::string, DeviceSettings> GetSettingsByDevice();

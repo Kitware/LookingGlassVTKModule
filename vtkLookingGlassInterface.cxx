@@ -341,31 +341,56 @@ bool vtkLookingGlassInterface::GetLookingGlassInfo()
   return true;
 }
 
+void vtkLookingGlassInterface::SetupQuiltSettings(const DeviceSettings& settings)
+{
+  std::copy(settings.QuiltSize, settings.QuiltSize + 2, this->QuiltSize);
+  std::copy(settings.QuiltTiles, settings.QuiltTiles + 2, this->QuiltTiles);
+};
+
 // set up the quilt settings
 void vtkLookingGlassInterface::SetupQuiltSettings(int preset)
 {
   // there are 3 presets:
   switch (preset)
   {
-    case 0: // standard
-      this->QuiltSize[0] = 2048;
-      this->QuiltSize[1] = 2048;
-      this->QuiltTiles[0] = 4;
-      this->QuiltTiles[1] = 8;
-      break;
+    case 0:
+    { // standard
+      auto deviceSettings = GetSettingsForDevice("standard");
+      this->SetupQuiltSettings(deviceSettings);
+    }
+    break;
     default:
-    case 1: // hires
-      this->QuiltSize[0] = 4096;
-      this->QuiltSize[1] = 4096;
-      this->QuiltTiles[0] = 5;
-      this->QuiltTiles[1] = 9;
-      break;
-    case 2: // 8k
-      this->QuiltSize[0] = 4096 * 2;
-      this->QuiltSize[1] = 4096 * 2;
-      this->QuiltTiles[0] = 5;
-      this->QuiltTiles[1] = 9;
-      break;
+    case 1:
+    { // hires - i assume this is large or pro?
+      auto deviceSettings = GetSettingsForDevice("large");
+      this->SetupQuiltSettings(deviceSettings);
+    }
+    break;
+    case 2:
+    { // 8k
+      auto deviceSettings = GetSettingsForDevice("8k");
+      this->SetupQuiltSettings(deviceSettings);
+    }
+    break;
+  }
+}
+
+// set up quilt settings for a given device
+void vtkLookingGlassInterface::SetupQuiltSettings(const std::string& deviceType)
+{
+  auto byDevice = this->GetSettingsByDevice();
+  if (byDevice.count(deviceType))
+  {
+    auto deviceSettings = byDevice[deviceType];
+    this->SetupQuiltSettings(deviceSettings);
+  }
+  else
+  {
+    // Issue warning and default to "large" device
+    vtkWarningMacro(
+      "Unrecognized device type: '" << deviceType << "', defaulting to setting for 'large' device");
+    auto deviceSettings = GetSettingsForDevice("large");
+    this->SetupQuiltSettings(deviceSettings);
   }
 }
 
@@ -396,9 +421,24 @@ void vtkLookingGlassInterface::Initialize(void)
     this->DisplaySize[1] = hpc_GetDevicePropertyScreenH(this->DeviceIndex);
     this->DisplayPosition[0] = hpc_GetDevicePropertyWinX(this->DeviceIndex);
     this->DisplayPosition[1] = hpc_GetDevicePropertyWinY(this->DeviceIndex);
+
+    // get the device type if one hasn't been set
+    if (this->DeviceType.empty())
+    {
+      char buf[100];
+      hpc_GetDeviceType(this->DeviceIndex, buf, 100);
+      this->DeviceType = buf;
+    }
   }
 
-  this->SetupQuiltSettings(this->QuiltQuality);
+  // If we still don't have a device type default to "large"
+  if (this->DeviceType.empty())
+  {
+    vtkWarningMacro("No Looking Glass device attached defaulting to 'large'");
+    this->DeviceType = "large";
+  }
+
+  this->SetupQuiltSettings(this->DeviceType);
 
   this->NumberOfTiles = this->QuiltTiles[0] * this->QuiltTiles[1];
 
