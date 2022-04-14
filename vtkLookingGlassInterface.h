@@ -20,7 +20,7 @@
 #ifndef vtkLookingGlassInterface_h
 #define vtkLookingGlassInterface_h
 
-#include "vtkRenderingLookingGlassModule.h" // For export macro
+#include "vtkDeprecation.h"
 #include "vtkObject.h"
 #include "vtkRenderingLookingGlassModule.h" // For export macro
 #include <map>
@@ -107,7 +107,9 @@ public:
    * and 2 is the highest. Higher settings require more texture memory.
    * The default setting is 1.
    */
+  VTK_DEPRECATED_IN_9_2_0("Quality is now based on device type.")
   vtkSetMacro(QuiltQuality, int);
+  VTK_DEPRECATED_IN_9_2_0("Quality is now based on device type.")
   vtkGetMacro(QuiltQuality, int);
   //@}
 
@@ -258,6 +260,8 @@ protected:
   ~vtkLookingGlassInterface() override;
 
   bool GetLookingGlassInfo();
+
+  VTK_DEPRECATED_IN_9_2_0("Quality is now based on device type.")
   void SetupQuiltSettings(int i);
 
   /**
