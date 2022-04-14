@@ -131,6 +131,15 @@ public:
 
   //@{
   /**
+   * Set/Get which LookingGlass device type to target. This allows a quilt to be
+   * generated for a device that is not connected in the future.
+   */
+  vtkSetMacro(DeviceType, std::string);
+  vtkGetMacro(DeviceType, std::string);
+  //@}
+
+  //@{
+  /**
    * Turn on/off use of near and far clipping limits.
    */
   vtkSetMacro(UseClippingLimits, bool);
@@ -259,6 +268,9 @@ protected:
 
   // with multiple LookingGlass which one to use. Defaults to the first.
   int DeviceIndex;
+
+  // the device type, used to setup quilt settings, default to large
+  std::string DeviceType;
 
   bool UseClippingLimits;
   double FarClippingLimit;
