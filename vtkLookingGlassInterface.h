@@ -258,6 +258,11 @@ protected:
   static std::map<std::string, DeviceSettings> GetSettingsByDevice();
 
   /**
+   * Get the device setting for a give device.
+   */
+  static DeviceSettings GetSettingsForDevice(const std::string deviceType);
+
+  /**
    * Graphics resources.
    */
   vtkOpenGLFramebufferObject* RenderFramebuffer;
