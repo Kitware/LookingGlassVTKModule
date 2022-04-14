@@ -251,6 +251,17 @@ vtkLookingGlassInterface::DeviceSettings vtkLookingGlassInterface::GetSettingsFo
   return GetSettingsByDevice().at(deviceType);
 }
 
+vtkLookingGlassInterface::DeviceTypes vtkLookingGlassInterface::GetDevices()
+{
+  vtkLookingGlassInterface::DeviceTypes types;
+  for (auto const device : GetSettingsByDevice())
+  {
+    types.push_back(std::make_pair(device.first, device.second.Name));
+  }
+
+  return types;
+}
+
 vtkOpenGLRenderWindow* vtkLookingGlassInterface::CreateSharedLookingGlassRenderWindow(
   vtkOpenGLRenderWindow* srcWin)
 {

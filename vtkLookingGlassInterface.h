@@ -24,6 +24,7 @@
 #include "vtkObject.h"
 #include "vtkRenderingLookingGlassModule.h" // For export macro
 #include <map>
+#include <vector>
 
 class vtkCamera;
 class vtkGenericMovieWriter;
@@ -231,6 +232,13 @@ public:
    * video file into a format that HoloPlay Studio can read.
    */
   void StopRecordingQuilt();
+
+  using DeviceTypes = std::vector<std::pair<std::string, std::string>>;
+
+  /**
+   * Returns vector of pairs with the available device types.
+   */
+  static DeviceTypes GetDevices();
 
 protected:
   /**
