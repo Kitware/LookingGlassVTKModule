@@ -676,10 +676,6 @@ void vtkLookingGlassInterface::RenderQuilt(vtkOpenGLRenderWindow* rw,
     aren->SetActiveCamera(newCam);
   }
 
-  // Make sure we can use offscreen buffers
-  auto prevUseOffScreenBuffers = rw->GetUseOffScreenBuffers();
-  rw->UseOffScreenBuffersOn();
-
   // loop over all the tiles and render then and blit them to the quilt
   for (int tile = 0; tile < tcount; ++tile)
   {
@@ -746,9 +742,6 @@ void vtkLookingGlassInterface::RenderQuilt(vtkOpenGLRenderWindow* rw,
     // Write out a movie frame if we are recording
     this->WriteQuiltMovieFrame();
   }
-
-  // Restore previous settings
-  rw->SetUseOffScreenBuffers(prevUseOffScreenBuffers);
 
   // restore the original camera settings
   int count = 0;
