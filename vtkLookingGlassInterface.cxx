@@ -628,9 +628,15 @@ void vtkLookingGlassInterface::GetTilePosition(int tile, int pos[2])
   pos[1] = (tile / this->QuiltTiles[0]) * this->RenderSize[1];
 }
 
-void vtkLookingGlassInterface::RenderQuilt(
-  vtkOpenGLRenderWindow* rw, std::function<void(void)>* renderFunc)
+void vtkLookingGlassInterface::RenderQuilt(vtkOpenGLRenderWindow* rw,
+  vtkRendererCollection* renderers, std::function<void(void)>* renderFunc)
 {
+  if (!renderers)
+  {
+    // If no renderers are provided, default to all on the render window
+    renderers = rw->GetRenderers();
+  }
+
   vtkCollectionSimpleIterator rsit;
 
   // loop over the tiles, render,and blit
@@ -649,10 +655,9 @@ void vtkLookingGlassInterface::RenderQuilt(
   int tcount = this->GetNumberOfTiles();
 
   // save the original camera settings
-  auto* renCol = rw->GetRenderers();
   vtkRenderer* aren;
   std::vector<vtkCamera*> Cameras;
-  for (renCol->InitTraversal(rsit); aren = renCol->GetNextRenderer(rsit);)
+  for (renderers->InitTraversal(rsit); aren = renderers->GetNextRenderer(rsit);)
   {
     // Ugly piece of code - we need to know if the camera already
     // exists or not. If it does not yet exist, we must reset the
@@ -683,7 +688,7 @@ void vtkLookingGlassInterface::RenderQuilt(
     ostate->vtkglScissor(0, 0, renderSize[0], renderSize[1]);
 
     int count = 0;
-    for (renCol->InitTraversal(rsit); aren = renCol->GetNextRenderer(rsit); ++count)
+    for (renderers->InitTraversal(rsit); aren = renderers->GetNextRenderer(rsit); ++count)
     {
       // adjust camera
       vtkCamera* cam = aren->GetActiveCamera();
@@ -720,7 +725,7 @@ void vtkLookingGlassInterface::RenderQuilt(
     }
     else
     {
-      renCol->Render();
+      renderers->Render();
     }
 
     quiltFramebuffer->Bind(GL_DRAW_FRAMEBUFFER);
@@ -747,7 +752,7 @@ void vtkLookingGlassInterface::RenderQuilt(
 
   // restore the original camera settings
   int count = 0;
-  for (renCol->InitTraversal(rsit); aren = renCol->GetNextRenderer(rsit); ++count)
+  for (renderers->InitTraversal(rsit); aren = renderers->GetNextRenderer(rsit); ++count)
   {
     aren->SetActiveCamera(Cameras[count]);
     Cameras[count]->Delete();

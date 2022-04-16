@@ -20,6 +20,7 @@
 #include "vtkOpenGLRenderWindow.h"
 #include "vtkRenderState.h"
 #include "vtkRenderer.h"
+#include "vtkRendererCollection.h"
 
 vtkStandardNewMacro(vtkLookingGlassPass);
 
@@ -89,7 +90,11 @@ void vtkLookingGlassPass::Render(const vtkRenderState* s)
   s2.SetFrameBuffer(renderFramebuffer);
   std::function<void(void)> renderFunc = [this, &s2]() { this->DelegatePass->Render(&s2); };
 
-  this->Interface->RenderQuilt(renWin, &renderFunc);
+  // Only render with this single renderer
+  vtkNew<vtkRendererCollection> renderers;
+  renderers->AddItem(r);
+
+  this->Interface->RenderQuilt(renWin, renderers, &renderFunc);
   this->Interface->DrawLightField(renWin);
 
   vtkOpenGLCheckErrorMacro("failed after Render");
