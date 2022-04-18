@@ -131,7 +131,6 @@ vtkLookingGlassInterface::vtkLookingGlassInterface()
   , RenderFramebuffer(nullptr)
   , QuiltFramebuffer(nullptr)
   , QuiltQuality(1)
-  , QuiltExportMagnification(2)
   , IsRecording(false)
   , MovieWindowToImageFilter(nullptr)
   , MovieWriter(nullptr)
@@ -736,8 +735,8 @@ void vtkLookingGlassInterface::SaveQuilt(vtkOpenGLRenderWindow* rw, const char* 
   // vtkWindowToImageFilter::SetScale() doesn't seem to do what we want...
   int prevDisplaySize[2] = { this->DisplaySize[0], this->DisplaySize[1] };
 
-  this->DisplaySize[0] = this->QuiltExportMagnification * prevDisplaySize[0];
-  this->DisplaySize[1] = this->QuiltExportMagnification * prevDisplaySize[1];
+  this->DisplaySize[0] = this->QuiltTiles[0] * this->RenderSize[0];
+  this->DisplaySize[1] = this->QuiltTiles[1] * this->RenderSize[1];
   rw->SetSize(this->DisplaySize);
 
   // Render once while saving the quilt. This will render the quilt image
@@ -811,8 +810,8 @@ void vtkLookingGlassInterface::WriteQuiltMovieFrame()
   // vtkWindowToImageFilter::SetScale() doesn't seem to do what we want...
   int prevDisplaySize[2] = { this->DisplaySize[0], this->DisplaySize[1] };
 
-  this->DisplaySize[0] = this->QuiltExportMagnification * prevDisplaySize[0];
-  this->DisplaySize[1] = this->QuiltExportMagnification * prevDisplaySize[1];
+  this->DisplaySize[0] = this->QuiltTiles[0] * this->RenderSize[0];
+  this->DisplaySize[1] = this->QuiltTiles[1] * this->RenderSize[1];
   rw->SetSize(this->DisplaySize);
 
   // Render once while saving the quilt. This will render the quilt image
