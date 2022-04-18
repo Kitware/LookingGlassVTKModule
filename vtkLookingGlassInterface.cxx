@@ -196,9 +196,8 @@ vtkLookingGlassInterface::~vtkLookingGlassInterface()
   }
 }
 
-vtkLookingGlassInterface::DeviceSettings::DeviceSettings(
-  const std::string& name, int quiltWidth, int quiltHeight,
-  int quiltTilesColumns, int quiltTilesRows)
+vtkLookingGlassInterface::DeviceSettings::DeviceSettings(const std::string& name, int quiltWidth,
+  int quiltHeight, int quiltTilesColumns, int quiltTilesRows)
 {
   this->Name = name;
   this->QuiltSize[0] = quiltWidth;
@@ -213,32 +212,28 @@ vtkLookingGlassInterface::GetSettingsByDevice()
 
   static std::map<std::string, DeviceSettings> settingsByDevice = {};
 
-  if (settingsByDevice.empty()) {
-    settingsByDevice["standard"] = DeviceSettings(
-      "8.9\" Looking Glass Display (Standard)",
-      2048, 2048, // QuiltSize
-      4, 8        // QuiltTiles
-    );
-    settingsByDevice["portrait"] = DeviceSettings(
-      "7.9\" Looking Glass Display (Portrait)",
-      3360, 3360, // QuiltSize
-      8, 6        // QuiltTiles
-    );
-    settingsByDevice["large"] = DeviceSettings(
-      "15.6\" Looking Glass Display (Large)",
-      4096, 4096, // QuiltSize
-      5, 9        // QuiltTiles
-    );
-    settingsByDevice["pro"] = DeviceSettings(
-      "15.6\" Looking Glass Display (Pro)",
-      4096, 4096, // QuiltSize
-      5, 9        // QuiltTiles
-    );
-    settingsByDevice["8k"] = DeviceSettings(
-      "30\" Looking Glass Display (8K)",
-      4096 * 2, 4096 * 2, // QuiltSize
-      5, 9                // QuiltTiles
-    );
+  if (settingsByDevice.empty())
+  {
+    settingsByDevice["standard"] =
+      DeviceSettings("8.9\" Looking Glass Display (Standard)", 2048, 2048, // QuiltSize
+        4, 8                                                               // QuiltTiles
+      );
+    settingsByDevice["portrait"] =
+      DeviceSettings("7.9\" Looking Glass Display (Portrait)", 3360, 3360, // QuiltSize
+        8, 6                                                               // QuiltTiles
+      );
+    settingsByDevice["large"] =
+      DeviceSettings("15.6\" Looking Glass Display (Large)", 4096, 4096, // QuiltSize
+        5, 9                                                             // QuiltTiles
+      );
+    settingsByDevice["pro"] =
+      DeviceSettings("15.6\" Looking Glass Display (Pro)", 4096, 4096, // QuiltSize
+        5, 9                                                           // QuiltTiles
+      );
+    settingsByDevice["8k"] =
+      DeviceSettings("30\" Looking Glass Display (8K)", 4096 * 2, 4096 * 2, // QuiltSize
+        5, 9                                                                // QuiltTiles
+      );
   }
 
   return settingsByDevice;
