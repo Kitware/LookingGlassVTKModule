@@ -362,21 +362,18 @@ void vtkLookingGlassInterface::SetupQuiltSettings(int preset)
   {
     case 0:
     { // standard
-      auto deviceSettings = GetSettingsForDevice("standard");
-      this->SetupQuiltSettings(deviceSettings);
+      this->SetupQuiltSettings("standard");
     }
     break;
     default:
     case 1:
     { // hires - i assume this is large or pro?
-      auto deviceSettings = GetSettingsForDevice("large");
-      this->SetupQuiltSettings(deviceSettings);
+      this->SetupQuiltSettings("large");
     }
     break;
     case 2:
     { // 8k
-      auto deviceSettings = GetSettingsForDevice("8k");
-      this->SetupQuiltSettings(deviceSettings);
+      this->SetupQuiltSettings("8k");
     }
     break;
   }
