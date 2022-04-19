@@ -132,7 +132,6 @@ vtkLookingGlassInterface::vtkLookingGlassInterface()
   , RenderFramebuffer(nullptr)
   , QuiltFramebuffer(nullptr)
   , QuiltQuality(1)
-  , QuiltExportMagnification(2)
   , IsRecording(false)
   , MovieWindowToImageFilter(nullptr)
   , MovieWriter(nullptr)
@@ -141,10 +140,6 @@ vtkLookingGlassInterface::vtkLookingGlassInterface()
   this->DisplayPosition[1] = 0;
   this->DisplaySize[0] = 1280;
   this->DisplaySize[1] = 720;
-  this->QuiltSize[0] = 4096;
-  this->QuiltSize[1] = 4096;
-  this->QuiltTiles[0] = 5;
-  this->QuiltTiles[1] = 9;
   this->QuiltTexture = vtkTextureObject::New();
 }
 
@@ -200,6 +195,66 @@ vtkLookingGlassInterface::~vtkLookingGlassInterface()
     hpc_TeardownMessagePipe();
     this->Connected = false;
   }
+}
+
+vtkLookingGlassInterface::DeviceSettings::DeviceSettings(const std::string& name, int quiltWidth,
+  int quiltHeight, int quiltTilesColumns, int quiltTilesRows)
+{
+  this->Name = name;
+  this->QuiltSize[0] = quiltWidth;
+  this->QuiltSize[1] = quiltHeight;
+  this->QuiltTiles[0] = quiltTilesColumns;
+  this->QuiltTiles[1] = quiltTilesRows;
+}
+
+std::map<std::string, vtkLookingGlassInterface::DeviceSettings>
+vtkLookingGlassInterface::GetSettingsByDevice()
+{
+
+  static std::map<std::string, DeviceSettings> settingsByDevice = {};
+
+  if (settingsByDevice.empty())
+  {
+    settingsByDevice["standard"] =
+      DeviceSettings("8.9\" Looking Glass Display (Standard)", 2048, 2048, // QuiltSize
+        4, 8                                                               // QuiltTiles
+      );
+    settingsByDevice["portrait"] =
+      DeviceSettings("7.9\" Looking Glass Display (Portrait)", 3360, 3360, // QuiltSize
+        8, 6                                                               // QuiltTiles
+      );
+    settingsByDevice["large"] =
+      DeviceSettings("15.6\" Looking Glass Display (Large)", 4096, 4096, // QuiltSize
+        5, 9                                                             // QuiltTiles
+      );
+    settingsByDevice["pro"] =
+      DeviceSettings("15.6\" Looking Glass Display (Pro)", 4096, 4096, // QuiltSize
+        5, 9                                                           // QuiltTiles
+      );
+    settingsByDevice["8k"] =
+      DeviceSettings("30\" Looking Glass Display (8K)", 4096 * 2, 4096 * 2, // QuiltSize
+        5, 9                                                                // QuiltTiles
+      );
+  }
+
+  return settingsByDevice;
+}
+
+vtkLookingGlassInterface::DeviceSettings vtkLookingGlassInterface::GetSettingsForDevice(
+  const std::string deviceType)
+{
+  return GetSettingsByDevice().at(deviceType);
+}
+
+vtkLookingGlassInterface::DeviceTypes vtkLookingGlassInterface::GetDevices()
+{
+  vtkLookingGlassInterface::DeviceTypes types;
+  for (auto const device : GetSettingsByDevice())
+  {
+    types.push_back(std::make_pair(device.first, device.second.Name));
+  }
+
+  return types;
 }
 
 vtkOpenGLRenderWindow* vtkLookingGlassInterface::CreateSharedLookingGlassRenderWindow(
@@ -288,31 +343,53 @@ bool vtkLookingGlassInterface::GetLookingGlassInfo()
   return true;
 }
 
+void vtkLookingGlassInterface::SetupQuiltSettings(const DeviceSettings& settings)
+{
+  std::copy(settings.QuiltSize, settings.QuiltSize + 2, this->QuiltSize);
+  std::copy(settings.QuiltTiles, settings.QuiltTiles + 2, this->QuiltTiles);
+};
+
 // set up the quilt settings
 void vtkLookingGlassInterface::SetupQuiltSettings(int preset)
 {
   // there are 3 presets:
   switch (preset)
   {
-    case 0: // standard
-      this->QuiltSize[0] = 2048;
-      this->QuiltSize[1] = 2048;
-      this->QuiltTiles[0] = 4;
-      this->QuiltTiles[1] = 8;
-      break;
+    case 0:
+    { // standard
+      this->SetupQuiltSettings("standard");
+    }
+    break;
     default:
-    case 1: // hires
-      this->QuiltSize[0] = 4096;
-      this->QuiltSize[1] = 4096;
-      this->QuiltTiles[0] = 5;
-      this->QuiltTiles[1] = 9;
-      break;
-    case 2: // 8k
-      this->QuiltSize[0] = 4096 * 2;
-      this->QuiltSize[1] = 4096 * 2;
-      this->QuiltTiles[0] = 5;
-      this->QuiltTiles[1] = 9;
-      break;
+    case 1:
+    { // hires - i assume this is large or pro?
+      this->SetupQuiltSettings("large");
+    }
+    break;
+    case 2:
+    { // 8k
+      this->SetupQuiltSettings("8k");
+    }
+    break;
+  }
+}
+
+// set up quilt settings for a given device
+void vtkLookingGlassInterface::SetupQuiltSettings(const std::string& deviceType)
+{
+  auto byDevice = this->GetSettingsByDevice();
+  if (byDevice.count(deviceType))
+  {
+    auto deviceSettings = byDevice[deviceType];
+    this->SetupQuiltSettings(deviceSettings);
+  }
+  else
+  {
+    // Issue warning and default to "large" device
+    vtkWarningMacro(
+      "Unrecognized device type: '" << deviceType << "', defaulting to setting for 'large' device");
+    auto deviceSettings = GetSettingsForDevice("large");
+    this->SetupQuiltSettings(deviceSettings);
   }
 }
 
@@ -343,9 +420,24 @@ void vtkLookingGlassInterface::Initialize(void)
     this->DisplaySize[1] = hpc_GetDevicePropertyScreenH(this->DeviceIndex);
     this->DisplayPosition[0] = hpc_GetDevicePropertyWinX(this->DeviceIndex);
     this->DisplayPosition[1] = hpc_GetDevicePropertyWinY(this->DeviceIndex);
+
+    // get the device type if one hasn't been set
+    if (this->DeviceType.empty())
+    {
+      char buf[100];
+      hpc_GetDeviceType(this->DeviceIndex, buf, 100);
+      this->DeviceType = buf;
+    }
   }
 
-  this->SetupQuiltSettings(this->QuiltQuality);
+  // If we still don't have a device type default to "large"
+  if (this->DeviceType.empty())
+  {
+    vtkWarningMacro("No Looking Glass device attached defaulting to 'large'");
+    this->DeviceType = "large";
+  }
+
+  this->SetupQuiltSettings(this->DeviceType);
 
   this->NumberOfTiles = this->QuiltTiles[0] * this->QuiltTiles[1];
 
@@ -763,8 +855,8 @@ void vtkLookingGlassInterface::SaveQuilt(vtkOpenGLRenderWindow* rw, const char* 
   // vtkWindowToImageFilter::SetScale() doesn't seem to do what we want...
   int prevDisplaySize[2] = { this->DisplaySize[0], this->DisplaySize[1] };
 
-  this->DisplaySize[0] = this->QuiltExportMagnification * prevDisplaySize[0];
-  this->DisplaySize[1] = this->QuiltExportMagnification * prevDisplaySize[1];
+  this->DisplaySize[0] = this->QuiltTiles[0] * this->RenderSize[0];
+  this->DisplaySize[1] = this->QuiltTiles[1] * this->RenderSize[1];
   rw->SetSize(this->DisplaySize);
 
   // Render once while saving the quilt. This will render the quilt image
@@ -838,8 +930,8 @@ void vtkLookingGlassInterface::WriteQuiltMovieFrame()
   // vtkWindowToImageFilter::SetScale() doesn't seem to do what we want...
   int prevDisplaySize[2] = { this->DisplaySize[0], this->DisplaySize[1] };
 
-  this->DisplaySize[0] = this->QuiltExportMagnification * prevDisplaySize[0];
-  this->DisplaySize[1] = this->QuiltExportMagnification * prevDisplaySize[1];
+  this->DisplaySize[0] = this->QuiltTiles[0] * this->RenderSize[0];
+  this->DisplaySize[1] = this->QuiltTiles[1] * this->RenderSize[1];
   rw->SetSize(this->DisplaySize);
 
   // Render once while saving the quilt. This will render the quilt image

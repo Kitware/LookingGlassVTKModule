@@ -20,8 +20,11 @@
 #ifndef vtkLookingGlassInterface_h
 #define vtkLookingGlassInterface_h
 
-#include "vtkRenderingLookingGlassModule.h" // For export macro
+#include "vtkDeprecation.h"
 #include "vtkObject.h"
+#include "vtkRenderingLookingGlassModule.h" // For export macro
+#include <map>
+#include <vector>
 
 #include <functional>
 
@@ -107,18 +110,10 @@ public:
    * and 2 is the highest. Higher settings require more texture memory.
    * The default setting is 1.
    */
+  VTK_DEPRECATED_IN_9_2_0("Quality is now based on device type.")
   vtkSetMacro(QuiltQuality, int);
+  VTK_DEPRECATED_IN_9_2_0("Quality is now based on device type.")
   vtkGetMacro(QuiltQuality, int);
-  //@}
-
-  //@{
-  /**
-   * Set/Get the magnification used for quilt images/movies. Higher
-   * magnification will produce higher resolution files.
-   * The default setting is 2.
-   */
-  vtkSetClampMacro(QuiltExportMagnification, int, 1, VTK_INT_MAX);
-  vtkGetMacro(QuiltExportMagnification, int);
   //@}
 
   //@{
@@ -128,6 +123,15 @@ public:
    */
   vtkSetMacro(DeviceIndex, int);
   vtkGetMacro(DeviceIndex, int);
+  //@}
+
+  //@{
+  /**
+   * Set/Get which LookingGlass device type to target. This allows a quilt to be
+   * generated for a device that is not connected in the future.
+   */
+  vtkSetMacro(DeviceType, std::string);
+  vtkGetMacro(DeviceType, std::string);
   //@}
 
   //@{
@@ -237,12 +241,54 @@ public:
    */
   void StopRecordingQuilt();
 
+  using DeviceTypes = std::vector<std::pair<std::string, std::string>>;
+
+  /**
+   * Returns vector of pairs with the available device types.
+   */
+  static DeviceTypes GetDevices();
+
 protected:
+  /**
+   * struct to hold device specfic settings.
+   */
+  struct DeviceSettings
+  {
+    DeviceSettings(const std::string& name, int quiltWidth, int quiltHeight,
+                   int quiltTilesColumns, int quiltTilesRows);
+    DeviceSettings() = default;
+    int QuiltSize[2];
+    int QuiltTiles[2];
+    std::string Name;
+  };
+
   vtkLookingGlassInterface();
   ~vtkLookingGlassInterface() override;
 
   bool GetLookingGlassInfo();
+
+  VTK_DEPRECATED_IN_9_2_0("Quality is now based on device type.")
   void SetupQuiltSettings(int i);
+
+  /**
+   * Setup quilt settings based on device type.
+   */
+  void SetupQuiltSettings(const std::string& deviceType);
+
+  /**
+   * Setup quilt settings based on device type.
+   */
+  void SetupQuiltSettings(const DeviceSettings& deviceSettings);
+
+  /**
+   * Get the device setting by device type.
+   */
+  static std::map<std::string, DeviceSettings> GetSettingsByDevice();
+
+  /**
+   * Get the device setting for a give device.
+   */
+  static DeviceSettings GetSettingsForDevice(const std::string deviceType);
 
   /**
    * Graphics resources.
@@ -255,6 +301,9 @@ protected:
 
   // with multiple LookingGlass which one to use. Defaults to the first.
   int DeviceIndex;
+
+  // the device type, used to setup quilt settings, default to large
+  std::string DeviceType;
 
   bool UseClippingLimits;
   double FarClippingLimit;
@@ -270,10 +319,6 @@ protected:
   int NumberOfTiles;
 
   int QuiltQuality;
-
-  // The magnification factor for exporting quilt images/movies.
-  // Higher magnification produces higher resolution files.
-  int QuiltExportMagnification;
 
   // has the interface been initialized
   bool Initialized;
