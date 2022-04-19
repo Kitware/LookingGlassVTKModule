@@ -52,6 +52,7 @@ IN THE SOFTWARE.
 #include "vtkOpenGLShaderCache.h"
 #include "vtkOpenGLState.h"
 #include "vtkPNGWriter.h"
+#include "vtkRendererCollection.h"
 #include "vtkShaderProgram.h"
 #include "vtkTextureObject.h"
 #include "vtkVectorOperators.h"
@@ -625,6 +626,130 @@ void vtkLookingGlassInterface::GetTilePosition(int tile, int pos[2])
 {
   pos[0] = (tile % this->QuiltTiles[0]) * this->RenderSize[0];
   pos[1] = (tile / this->QuiltTiles[0]) * this->RenderSize[1];
+}
+
+void vtkLookingGlassInterface::RenderQuilt(vtkOpenGLRenderWindow* rw,
+  vtkRendererCollection* renderers, std::function<void(void)>* renderFunc)
+{
+  if (!renderers)
+  {
+    // If no renderers are provided, default to all on the render window
+    renderers = rw->GetRenderers();
+  }
+
+  vtkCollectionSimpleIterator rsit;
+
+  // loop over the tiles, render,and blit
+  vtkOpenGLFramebufferObject* renderFramebuffer;
+  vtkOpenGLFramebufferObject* quiltFramebuffer;
+  this->GetFramebuffers(rw, renderFramebuffer, quiltFramebuffer);
+
+  auto ostate = rw->GetState();
+
+  ostate->PushFramebufferBindings();
+  renderFramebuffer->Bind(GL_READ_FRAMEBUFFER);
+
+  int renderSize[2];
+  this->GetRenderSize(renderSize);
+
+  int tcount = this->GetNumberOfTiles();
+
+  // save the original camera settings
+  vtkRenderer* aren;
+  std::vector<vtkCamera*> Cameras;
+  for (renderers->InitTraversal(rsit); aren = renderers->GetNextRenderer(rsit);)
+  {
+    // Ugly piece of code - we need to know if the camera already
+    // exists or not. If it does not yet exist, we must reset the
+    // camera here - otherwise it will never be done (missing its
+    // oppportunity to be reset in the Render method of the
+    // vtkRenderer because it will already exist by that point...)
+    if (!aren->IsActiveCameraCreated())
+    {
+      aren->ResetCamera();
+    }
+    auto oldCam = aren->GetActiveCamera();
+    oldCam->SetLeftEye(1);
+    oldCam->Register(rw);
+    Cameras.push_back(oldCam);
+    vtkNew<vtkCamera> newCam;
+    aren->SetActiveCamera(newCam);
+  }
+
+  // loop over all the tiles and render then and blit them to the quilt
+  for (int tile = 0; tile < tcount; ++tile)
+  {
+    renderFramebuffer->Bind(GL_DRAW_FRAMEBUFFER);
+    ostate->vtkglViewport(0, 0, renderSize[0], renderSize[1]);
+    ostate->vtkglScissor(0, 0, renderSize[0], renderSize[1]);
+
+    int count = 0;
+    for (renderers->InitTraversal(rsit); aren = renderers->GetNextRenderer(rsit); ++count)
+    {
+      // adjust camera
+      vtkCamera* cam = aren->GetActiveCamera();
+      cam->DeepCopy(Cameras[count]);
+      this->AdjustCamera(cam, tile);
+
+      // limit the clipping range to limit parallax
+      if (this->GetUseClippingLimits())
+      {
+        double* cRange = cam->GetClippingRange();
+        double cameraDistance = cam->GetDistance();
+
+        double nearClippingLimit = this->GetNearClippingLimit();
+        double farClippingLimit = this->GetFarClippingLimit();
+
+        double newRange[2];
+        newRange[0] = cRange[0];
+        newRange[1] = cRange[1];
+        if (cRange[0] < cameraDistance * nearClippingLimit)
+        {
+          newRange[0] = cameraDistance * nearClippingLimit;
+        }
+        if (cRange[1] > cameraDistance * farClippingLimit)
+        {
+          newRange[1] = cameraDistance * farClippingLimit;
+        }
+        cam->SetClippingRange(newRange);
+      }
+    }
+
+    if (renderFunc)
+    {
+      (*renderFunc)();
+    }
+    else
+    {
+      renderers->Render();
+    }
+
+    quiltFramebuffer->Bind(GL_DRAW_FRAMEBUFFER);
+
+    int destPos[2];
+    this->GetTilePosition(tile, destPos);
+
+    // blit to quilt
+    ostate->vtkglViewport(destPos[0], destPos[1], renderSize[0], renderSize[1]);
+    ostate->vtkglScissor(destPos[0], destPos[1], renderSize[0], renderSize[1]);
+    glBlitFramebuffer(0, 0, renderSize[0], renderSize[1], destPos[0], destPos[1],
+      destPos[0] + renderSize[0], destPos[1] + renderSize[1], GL_COLOR_BUFFER_BIT, GL_LINEAR);
+  }
+  ostate->PopFramebufferBindings();
+
+  if (this->IsRecording)
+  {
+    // Write out a movie frame if we are recording
+    this->WriteQuiltMovieFrame();
+  }
+
+  // restore the original camera settings
+  int count = 0;
+  for (renderers->InitTraversal(rsit); aren = renderers->GetNextRenderer(rsit); ++count)
+  {
+    aren->SetActiveCamera(Cameras[count]);
+    Cameras[count]->Delete();
+  }
 }
 
 void vtkLookingGlassInterface::SaveQuilt(vtkOpenGLRenderWindow* rw, const char* fileName)
