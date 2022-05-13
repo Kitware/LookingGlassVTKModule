@@ -5,3 +5,4 @@ requires = [
   "scikit-build",
   "cmake"
 ]
+build-backend = "setuptools.build_meta"
