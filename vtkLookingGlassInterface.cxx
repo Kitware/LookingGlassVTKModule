@@ -43,6 +43,8 @@ IN THE SOFTWARE.
 #include "HoloPlayShadersOpen.h"
 
 #include "vtkCamera.h"
+#include "vtkDataArray.h"
+#include "vtkImageData.h"
 #include "vtkMath.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
@@ -52,11 +54,14 @@ IN THE SOFTWARE.
 #include "vtkOpenGLShaderCache.h"
 #include "vtkOpenGLState.h"
 #include "vtkPNGWriter.h"
+#include "vtkPixelBufferObject.h"
+#include "vtkPixelExtent.h"
+#include "vtkPixelTransfer.h"
+#include "vtkPointData.h"
 #include "vtkRendererCollection.h"
 #include "vtkShaderProgram.h"
 #include "vtkTextureObject.h"
 #include "vtkVectorOperators.h"
-#include "vtkWindowToImageFilter.h"
 
 #include "vtk_glew.h"
 
@@ -120,7 +125,6 @@ vtkStandardNewMacro(vtkLookingGlassInterface);
 //------------------------------------------------------------------------------
 vtkLookingGlassInterface::vtkLookingGlassInterface()
   : Connected(false)
-  , SavingQuilt(false)
   , DeviceIndex(0)
   , UseClippingLimits(false)
   , FarClippingLimit(1.2)
@@ -133,7 +137,8 @@ vtkLookingGlassInterface::vtkLookingGlassInterface()
   , QuiltFramebuffer(nullptr)
   , QuiltQuality(1)
   , IsRecording(false)
-  , MovieWindowToImageFilter(nullptr)
+  , MovieImageBuffer(nullptr)
+  , MovieImageData(nullptr)
   , MovieWriter(nullptr)
 {
   this->DisplayPosition[0] = 0;
@@ -177,10 +182,16 @@ vtkLookingGlassInterface::~vtkLookingGlassInterface()
     this->QuiltBlend = nullptr;
   }
 
-  if (this->MovieWindowToImageFilter != nullptr)
+  if (this->MovieImageBuffer != nullptr)
   {
-    this->MovieWindowToImageFilter->Delete();
-    this->MovieWindowToImageFilter = nullptr;
+    this->MovieImageBuffer->Delete();
+    this->MovieImageBuffer = nullptr;
+  }
+
+  if (this->MovieImageData != nullptr)
+  {
+    this->MovieImageData->Delete();
+    this->MovieImageData = nullptr;
   }
 
   if (this->MovieWriter != nullptr)
@@ -538,7 +549,7 @@ void vtkLookingGlassInterface::DrawLightFieldInternal(
 
   vtkOpenGLQuadHelper* blend = nullptr;
 
-  if (this->SavingQuilt || !this->Connected)
+  if (!this->Connected)
   {
     // Use the QuiltBlend
     if (!this->QuiltBlend)
@@ -829,12 +840,6 @@ void vtkLookingGlassInterface::RenderQuilt(vtkOpenGLRenderWindow* rw,
   }
   ostate->PopFramebufferBindings();
 
-  if (this->IsRecording)
-  {
-    // Write out a movie frame if we are recording
-    this->WriteQuiltMovieFrame();
-  }
-
   // restore the original camera settings
   int count = 0;
   for (renderers->InitTraversal(rsit); aren = renderers->GetNextRenderer(rsit); ++count)
@@ -842,46 +847,35 @@ void vtkLookingGlassInterface::RenderQuilt(vtkOpenGLRenderWindow* rw,
     aren->SetActiveCamera(Cameras[count]);
     Cameras[count]->Delete();
   }
+
+  if (this->IsRecording)
+  {
+    // Write out a movie frame if we are recording
+    this->WriteQuiltMovieFrame();
+  }
 }
 
-void vtkLookingGlassInterface::SaveQuilt(vtkOpenGLRenderWindow* rw, const char* fileName)
+void vtkLookingGlassInterface::SaveQuilt(const char* fileName)
 {
-  // Make a deep copy of the render window, render the quilt, and save it
-  vtkNew<vtkWindowToImageFilter> filter;
-  filter->ShouldRerenderOff();
-  filter->SetInput(rw);
+  vtkSmartPointer<vtkPixelBufferObject> pbo = this->QuiltTexture->Download();
 
-  // Increase magnification to produce higher resolution images
-  // vtkWindowToImageFilter::SetScale() doesn't seem to do what we want...
-  int prevDisplaySize[2] = { this->DisplaySize[0], this->DisplaySize[1] };
+  vtkNew<vtkImageData> image;
+  image->SetDimensions(this->QuiltSize[0], this->QuiltSize[1], 1);
+  image->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
 
-  this->DisplaySize[0] = this->QuiltTiles[0] * this->RenderSize[0];
-  this->DisplaySize[1] = this->QuiltTiles[1] * this->RenderSize[1];
-  rw->SetSize(this->DisplaySize);
-
-  // Render once while saving the quilt. This will render the quilt image
-  // on the render window. Then we will write out the image.
-  // In ParaView, this will perform only the quad render via calling
-  // DrawLightField(). It will not re-render the quilt images.
-  this->SavingQuilt = true;
-  rw->Render();
-  this->SavingQuilt = false;
+  vtkPixelExtent ext(this->QuiltSize[0], this->QuiltSize[1]);
+  auto* srcData = pbo->MapPackedBuffer();
+  auto* destData = image->GetScalarPointer(0, 0, 0);
+  vtkPixelTransfer::Blit(ext, 4, VTK_UNSIGNED_CHAR, srcData, VTK_UNSIGNED_CHAR, destData);
+  pbo->UnmapPackedBuffer();
 
   vtkNew<vtkPNGWriter> writer;
   writer->SetFileName(fileName);
-  writer->SetInputConnection(filter->GetOutputPort());
+  writer->SetInputData(image);
   writer->Write();
-
-  // Restore previous resolution settings
-  this->DisplaySize[0] = prevDisplaySize[0];
-  this->DisplaySize[1] = prevDisplaySize[1];
-  rw->SetSize(this->DisplaySize);
-
-  // Render again for the correct LG display.
-  rw->Render();
 }
 
-void vtkLookingGlassInterface::StartRecordingQuilt(vtkOpenGLRenderWindow* rw, const char* fileName)
+void vtkLookingGlassInterface::StartRecordingQuilt(const char* fileName)
 {
   if (this->IsRecording)
   {
@@ -889,12 +883,14 @@ void vtkLookingGlassInterface::StartRecordingQuilt(vtkOpenGLRenderWindow* rw, co
     return;
   }
 
-  // Create necessary objects
-  if (!this->MovieWindowToImageFilter)
+  if (!this->MovieImageBuffer)
   {
-    this->MovieWindowToImageFilter = vtkWindowToImageFilter::New();
-    this->MovieWindowToImageFilter->ShouldRerenderOff();
-    this->MovieWindowToImageFilter->ReadFrontBufferOff();
+    this->MovieImageBuffer = vtkImageData::New();
+  }
+
+  if (!this->MovieImageData)
+  {
+    this->MovieImageData = vtkImageData::New();
   }
 
   if (!this->MovieWriter)
@@ -902,13 +898,17 @@ void vtkLookingGlassInterface::StartRecordingQuilt(vtkOpenGLRenderWindow* rw, co
     this->MovieWriter = MovieWriterClass::New();
   }
 
-  auto filter = this->MovieWindowToImageFilter;
+  auto buffer = this->MovieImageBuffer;
+  auto image = this->MovieImageData;
   auto writer = this->MovieWriter;
 
-  filter->SetInput(rw);
-  filter->Update();
+  buffer->SetDimensions(this->QuiltSize[0], this->QuiltSize[1], 1);
+  buffer->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
 
-  writer->SetInputConnection(filter->GetOutputPort());
+  image->SetDimensions(this->QuiltSize[0], this->QuiltSize[1], 1);
+  image->AllocateScalars(VTK_UNSIGNED_CHAR, 3);
+
+  writer->SetInputData(image);
   writer->SetFileName(fileName);
   writer->Start();
 
@@ -922,33 +922,29 @@ void vtkLookingGlassInterface::WriteQuiltMovieFrame()
     return;
   }
 
-  auto filter = this->MovieWindowToImageFilter;
+  auto buffer = this->MovieImageBuffer;
+  auto image = this->MovieImageData;
   auto writer = this->MovieWriter;
-  auto rw = filter->GetInput();
 
-  // Increase magnification to produce higher resolution images
-  // vtkWindowToImageFilter::SetScale() doesn't seem to do what we want...
-  int prevDisplaySize[2] = { this->DisplaySize[0], this->DisplaySize[1] };
+  vtkSmartPointer<vtkPixelBufferObject> pbo = this->QuiltTexture->Download();
 
-  this->DisplaySize[0] = this->QuiltTiles[0] * this->RenderSize[0];
-  this->DisplaySize[1] = this->QuiltTiles[1] * this->RenderSize[1];
-  rw->SetSize(this->DisplaySize);
+  vtkPixelExtent ext(this->QuiltSize[0], this->QuiltSize[1]);
+  auto* srcData = pbo->MapPackedBuffer();
+  auto* destData = buffer->GetScalarPointer(0, 0, 0);
+  vtkPixelTransfer::Blit(ext, 4, VTK_UNSIGNED_CHAR, srcData, VTK_UNSIGNED_CHAR, destData);
+  pbo->UnmapPackedBuffer();
 
-  // Render once while saving the quilt. This will render the quilt image
-  // on the render window. Then we will write out the image.
-  // In ParaView, this will perform only the quad render via calling
-  // DrawLightField(). It will not re-render the quilt images.
-  this->SavingQuilt = true;
-  rw->Render();
-  this->SavingQuilt = false;
+  // Ogg Theora (and possibly other movie writers as well) assume the
+  // data will be 3-component. Thus, we have to convert it to 3-component
+  // or else the movie writer will not work properly.
+  auto oldArray = buffer->GetPointData()->GetScalars();
+  auto newArray = image->GetPointData()->GetScalars();
+  for (int i = 0; i < 3; ++i)
+  {
+    newArray->CopyComponent(i, oldArray, i);
+  }
 
-  filter->Modified();
   writer->Write();
-
-  // Restore previous resolution settings
-  this->DisplaySize[0] = prevDisplaySize[0];
-  this->DisplaySize[1] = prevDisplaySize[1];
-  rw->SetSize(this->DisplaySize);
 }
 
 void vtkLookingGlassInterface::StopRecordingQuilt()
@@ -959,9 +955,7 @@ void vtkLookingGlassInterface::StopRecordingQuilt()
     return;
   }
 
-  auto filter = this->MovieWindowToImageFilter;
   auto writer = this->MovieWriter;
-  auto rw = filter->GetInput();
 
   writer->End();
 
