@@ -53,6 +53,26 @@ public:
    */
   void SetLGDeviceIndex(int index);
 
+  /**
+   * Save a quilt to a PNG file
+   */
+  void SaveQuilt(const char* fileName);
+
+  /**
+   * Start recording a quilt
+   */
+  void StartRecordingQuilt(const char* fileName);
+
+  /**
+   * Stop recording a quilt
+   */
+  void StopRecordingQuilt();
+
+  /**
+   * Get the movie extension that should be used for quilt movies
+   */
+  static const char* MovieFileExtension();
+
 protected:
   vtkXLookingGlassRenderWindow();
   ~vtkXLookingGlassRenderWindow() override;

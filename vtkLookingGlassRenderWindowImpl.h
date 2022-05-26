@@ -88,3 +88,27 @@ void className::SetLGDeviceIndex(int index)
 {
   this->Interface->SetDeviceIndex(index);
 }
+
+//------------------------------------------------------------------------------
+void className::SaveQuilt(const char* fileName)
+{
+  this->Interface->SaveQuilt(fileName);
+}
+
+//------------------------------------------------------------------------------
+void className::StartRecordingQuilt(const char* fileName)
+{
+  this->Interface->StartRecordingQuilt(fileName);
+}
+
+//------------------------------------------------------------------------------
+void className::StopRecordingQuilt()
+{
+  this->Interface->StopRecordingQuilt();
+}
+
+//------------------------------------------------------------------------------
+const char* className::MovieFileExtension()
+{
+  return vtkLookingGlassInterface::MovieFileExtension();
+}
