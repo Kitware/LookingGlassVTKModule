@@ -43,12 +43,16 @@ renWin.Initialize()
 ren.ResetCamera()
 ren.GetActiveCamera().SetViewAngle(30)
 
+# The suffix encodes the tile pattern, such as "_qs5x9"
+# This allows software to automatically determine the tile pattern
+suffix = renWin.QuiltFileSuffix()
+
 # Get the movie extension. This will be "mp4" if it is available. Otherwise,
 # it may be "avi" or "ogv".
 ext = renWin.MovieFileExtension()
 
 # Start recording
-renWin.StartRecordingQuilt(f"quilt.{ext}")
+renWin.StartRecordingQuilt(f"quilt{suffix}.{ext}")
 
 # Change the cone direction. Each render will produce a frame in the file.
 # This may be slow due to the time required to encode each frame into the

@@ -112,3 +112,9 @@ const char* className::MovieFileExtension()
 {
   return vtkLookingGlassInterface::MovieFileExtension();
 }
+
+//------------------------------------------------------------------------------
+std::string className::QuiltFileSuffix() const
+{
+  return this->Interface->QuiltFileSuffix();
+}

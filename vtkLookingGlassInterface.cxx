@@ -875,6 +875,13 @@ void vtkLookingGlassInterface::SaveQuilt(const char* fileName)
   writer->Write();
 }
 
+std::string vtkLookingGlassInterface::QuiltFileSuffix() const
+{
+  std::string w = std::to_string(this->QuiltTiles[0]);
+  std::string h = std::to_string(this->QuiltTiles[1]);
+  return "_qs" + w + "x" + h;
+}
+
 void vtkLookingGlassInterface::StartRecordingQuilt(const char* fileName)
 {
   if (this->IsRecording)

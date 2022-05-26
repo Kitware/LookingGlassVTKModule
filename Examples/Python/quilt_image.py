@@ -36,5 +36,9 @@ ren.GetActiveCamera().SetViewAngle(30)
 # Must render before writing out the quilt
 renWin.Render()
 
+# The suffix encodes the tile pattern, such as "_qs5x9"
+# This allows software to automatically determine the tile pattern
+suffix = renWin.QuiltFileSuffix()
+
 # Write out the quilt
-renWin.SaveQuilt("quilt.png")
+renWin.SaveQuilt(f"quilt{suffix}.png")

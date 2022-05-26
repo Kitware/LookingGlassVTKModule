@@ -73,6 +73,14 @@ public:
    */
   static const char* MovieFileExtension();
 
+  /**
+   * Get the quilt file suffix as a string. The suffix encodes the number of
+   * tiles in the width and the height. For example, if the quilt file name
+   * is "quilt_qs5x9.png", the suffix is "_qs5x9", and it means that the quilt
+   * is 5 tiles wide and 9 tiles high.
+   */
+  std::string QuiltFileSuffix() const;
+
 protected:
   vtkXLookingGlassRenderWindow();
   ~vtkXLookingGlassRenderWindow() override;
