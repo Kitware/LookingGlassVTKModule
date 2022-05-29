@@ -1,5 +1,7 @@
 message(STATUS "LookingGlass: Building as a Remote VTK module")
 
+list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+
 set(classes
   vtkLookingGlassInterface
   vtkLookingGlassPass
@@ -22,7 +24,10 @@ vtk_module_add_module(VTK::RenderingLookingGlass
   HEADERS ${headers}
 )
 
-list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+if (NOT HoloPlayCore_INCLUDE_DIR OR NOT HoloPlayCore_LIBRARY)
+  # Download HoloPlayCore if it is not set already
+  include(FetchHoloPlayCore)
+endif()
 
 vtk_module_find_package(PACKAGE HoloPlayCore)
 vtk_module_link(VTK::RenderingLookingGlass

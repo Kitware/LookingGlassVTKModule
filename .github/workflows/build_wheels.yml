@@ -1,0 +1,79 @@
+name: Build Wheels
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+       - '*'
+  pull_request:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+env:
+  # Only support 64-bit CPython >= 3.7
+  # FIXME: only doing python 3.9 right now for testing
+  CIBW_SKIP: "cp27-* cp35-* cp36-* pp* *-manylinux_i686 *-musllinux_* *-win32   cp37-* cp38-* cp310-*"
+
+  # Run this script before each build...
+  CIBW_BEFORE_BUILD: bash .github/scripts/cibw_before_build.sh
+
+  # Pass these environment variables from the host into the Linux docker container
+  CIBW_ENVIRONMENT_PASS_LINUX: RUNNER_OS VTK_WHEEL_SDK_PATH
+
+  # Need to match the version used by VTK
+  CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.10
+
+  # VTK will fix the rpaths, so we should skip this step
+  CIBW_REPAIR_WHEEL_COMMAND:
+
+# Use bash by default for the run command
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: bash .github/scripts/install.sh
+
+      - name: Build wheels
+        run: cibuildwheel --output-dir wheelhouse
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+
+  upload_pypi:
+    needs: build_wheels
+    name: Upload wheels to PyPI
+    runs-on: ubuntu-latest
+    # upload to PyPI on every tag push
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
