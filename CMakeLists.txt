@@ -10,12 +10,6 @@ if (VTK_USE_X)
   list(APPEND classes vtkXLookingGlassRenderWindow)
 elseif (WIN32)
   list(APPEND classes vtkWin32LookingGlassRenderWindow)
-  if (NOT VTK_USE_MICROSOFT_MEDIA_FOUNDATION OR NOT VTK_USE_VIDEO_FOR_WINDOWS)
-    message(FATAL_ERROR
-      "LookingGlass module requires"
-       " VTK_USE_MICROSOFT_MEDIA_FOUNDATION and"
-       " VTK_USE_VIDEO_FOR_WINODWS to be set to ON" )
-  endif()
 elseif (VTK_USE_COCOA)
   list(APPEND sources vtkCocoaLookingGlassRenderWindow.mm)
   list(APPEND headers vtkCocoaLookingGlassRenderWindow.h)

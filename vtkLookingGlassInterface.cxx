@@ -77,14 +77,13 @@ IN THE SOFTWARE.
 #include "vtkCocoaLookingGlassRenderWindow.h"
 #endif
 
-#ifdef WIN32
+#ifdef VTK_USE_MICROSOFT_MEDIA_FOUNDATION
 // Use the MP4 writer on Windows
 #include "vtkMP4Writer.h"
 using MovieWriterClass = vtkMP4Writer;
 static const char* MovieExtension = "mp4";
-#else
+#elif VTK_MODULE_ENABLE_VTK_IOFFMPEG
 // If not Windows, use FFMPEG if it is available
-#if VTK_MODULE_ENABLE_VTK_IOFFMPEG
 #include "vtkFFMPEGWriter.h"
 using MovieWriterClass = vtkFFMPEGWriter;
 static const char* MovieExtension = "avi";
@@ -93,7 +92,6 @@ static const char* MovieExtension = "avi";
 #include "vtkOggTheoraWriter.h"
 using MovieWriterClass = vtkOggTheoraWriter;
 static const char* MovieExtension = "ogv";
-#endif
 #endif
 
 //------------------------------------------------------------------------------
