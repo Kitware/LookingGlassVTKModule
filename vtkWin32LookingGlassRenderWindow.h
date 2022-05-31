@@ -53,6 +53,34 @@ public:
    */
   void SetLGDeviceIndex(int index);
 
+  /**
+   * Save a quilt to a PNG file
+   */
+  void SaveQuilt(const char* fileName);
+
+  /**
+   * Start recording a quilt
+   */
+  void StartRecordingQuilt(const char* fileName);
+
+  /**
+   * Stop recording a quilt
+   */
+  void StopRecordingQuilt();
+
+  /**
+   * Get the movie extension that should be used for quilt movies
+   */
+  static const char* MovieFileExtension();
+
+  /**
+   * Get the quilt file suffix as a string. The suffix encodes the number of
+   * tiles in the width and the height. For example, if the quilt file name
+   * is "quilt_qs5x9.png", the suffix is "_qs5x9", and it means that the quilt
+   * is 5 tiles wide and 9 tiles high.
+   */
+  std::string QuiltFileSuffix() const;
+
 protected:
   vtkWin32LookingGlassRenderWindow();
   ~vtkWin32LookingGlassRenderWindow() override;
