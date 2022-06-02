@@ -60,3 +60,11 @@ if (DEFINED vtk_cmake_destination)
     DESTINATION "${vtk_cmake_destination}"
     COMPONENT   "development")
 endif ()
+
+if (VTK_WHEEL_BUILD)
+  # Need to install the HoloPlayCore_RUNTIME_LIBRARY
+  # FIXME: can we find a way to NOT set the DESTINATION manually?
+  install(
+    FILES "${HoloPlayCore_RUNTIME_LIBRARY}"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtkmodules")
+endif()
