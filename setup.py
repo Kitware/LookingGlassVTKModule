@@ -135,7 +135,7 @@ elif sys.platform == 'darwin':
 
 setup(
     name='vtk-lookingglass',
-    version='1.0.0rc1',
+    version='1.0.0rc2',
     description='Looking Glass support for VTK Python.',
     long_description='Looking Glass support for VTK Python.',
     url='',
@@ -150,4 +150,5 @@ setup(
     packages=['vtkmodules'],
     package_dir={'vtkmodules': 'lib/vtkmodules'},
     cmake_args=cmake_args,
+    install_requires=['vtk'],
 )
