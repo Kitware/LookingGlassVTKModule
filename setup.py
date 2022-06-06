@@ -139,7 +139,7 @@ setup(
     description='Looking Glass support for VTK Python.',
     long_description='Looking Glass support for VTK Python.',
     url='',
-    author='Kitware Inc',
+    author='VTK developers',
     license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
