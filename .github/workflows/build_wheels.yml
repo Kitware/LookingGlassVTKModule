@@ -14,14 +14,7 @@ on:
 
 env:
   # Only support 64-bit CPython >= 3.7
-  # FIXME: only doing python 3.9 right now for testing
-  CIBW_SKIP: "cp27-* cp35-* cp36-* pp* *-manylinux_i686 *-musllinux_* *-win32   cp37-* cp38-* cp310-*"
-
-  # Run this script before each build...
-  CIBW_BEFORE_BUILD: bash .github/scripts/cibw_before_build.sh
-
-  # Pass these environment variables from the host into the Linux docker container
-  CIBW_ENVIRONMENT_PASS_LINUX: RUNNER_OS VTK_WHEEL_SDK_PATH
+  CIBW_SKIP: "cp27-* cp35-* cp36-* pp* *-manylinux_i686 *-musllinux_* *-win32"
 
   # Need to match the version used by VTK
   CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.10
