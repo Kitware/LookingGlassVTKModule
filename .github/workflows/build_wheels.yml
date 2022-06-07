@@ -19,11 +19,26 @@ env:
   # Need to match the version used by VTK
   CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.10
 
-  # VTK will fix the rpaths, so we should skip this step
-  CIBW_REPAIR_WHEEL_COMMAND:
+  # In the Linux docker container, install the wheel SDKs to this location
+  CIBW_ENVIRONMENT_LINUX: VTK_WHEEL_SDK_INSTALL_PATH=/vtk-wheel-sdk
+
+  # VTK already fixes the rpaths, so we can skip this step for MacOS
+  CIBW_REPAIR_WHEEL_COMMAND_MACOS:
+
+  # On Linux, we only need auditwheel to add the tags to the wheel.
+  # Unfortunately, auditwheel currently requires us to repair the wheel to
+  # add the tags, even though we do not need to repair the wheel.
+  # Thus, we need to set everything up for a wheel repair (including placing
+  # the VTK libraries in `vtkmodules`, where they are expected to be at
+  # runtime), perform the wheel repair, and then remove the added libraries.
+  # Then the tags will have been added.
+  CIBW_REPAIR_WHEEL_COMMAND_LINUX: .github/scripts/linux_repair_wheel.py {wheel} {dest_dir}
+
+  # Pass these variables into the Linux docker containers
+  CIBW_ENVIRONMENT_PASS_LINUX: RUNNER_OS VTK_WHEEL_SDK_INSTALL_PATH
 
   # Run this before every build
-  CIBW_BEFORE_BUILD: .github/scripts/cibw_before_build.sh
+  CIBW_BEFORE_BUILD: bash .github/scripts/cibw_before_build.sh
 
 # Use bash by default for the run command
 defaults:
