@@ -19,8 +19,10 @@ import math
 
 import vtk
 
+from vtk import vtkRenderingLookingGlass
+
 # Create a looking glass render window
-renWin = vtk.vtkLookingGlassInterface.CreateLookingGlassRenderWindow()
+renWin = vtkRenderingLookingGlass.vtkLookingGlassInterface.CreateLookingGlassRenderWindow()
 
 # Declare a VTK rendering process, and add it to the window
 ren = vtk.vtkRenderer()

@@ -1,5 +1,7 @@
 message(STATUS "LookingGlass: Building as a Remote VTK module")
 
+list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+
 set(classes
   vtkLookingGlassInterface
   vtkLookingGlassPass
@@ -10,12 +12,6 @@ if (VTK_USE_X)
   list(APPEND classes vtkXLookingGlassRenderWindow)
 elseif (WIN32)
   list(APPEND classes vtkWin32LookingGlassRenderWindow)
-  if (NOT VTK_USE_MICROSOFT_MEDIA_FOUNDATION OR NOT VTK_USE_VIDEO_FOR_WINDOWS)
-    message(FATAL_ERROR
-      "LookingGlass module requires"
-       " VTK_USE_MICROSOFT_MEDIA_FOUNDATION and"
-       " VTK_USE_VIDEO_FOR_WINODWS to be set to ON" )
-  endif()
 elseif (VTK_USE_COCOA)
   list(APPEND sources vtkCocoaLookingGlassRenderWindow.mm)
   list(APPEND headers vtkCocoaLookingGlassRenderWindow.h)
@@ -28,7 +24,10 @@ vtk_module_add_module(VTK::RenderingLookingGlass
   HEADERS ${headers}
 )
 
-list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+if (NOT HoloPlayCore_INCLUDE_DIR OR NOT HoloPlayCore_LIBRARY)
+  # Download HoloPlayCore if it is not set already
+  include(FetchHoloPlayCore)
+endif()
 
 vtk_module_find_package(PACKAGE HoloPlayCore)
 vtk_module_link(VTK::RenderingLookingGlass
@@ -61,3 +60,11 @@ if (DEFINED vtk_cmake_destination)
     DESTINATION "${vtk_cmake_destination}"
     COMPONENT   "development")
 endif ()
+
+if (VTK_WHEEL_BUILD)
+  # Need to install the HoloPlayCore_RUNTIME_LIBRARY
+  # FIXME: can we find a way to NOT set the DESTINATION manually?
+  install(
+    FILES "${HoloPlayCore_RUNTIME_LIBRARY}"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/vtkmodules")
+endif()

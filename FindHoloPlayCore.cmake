@@ -24,10 +24,27 @@ find_package_handle_standard_args(HoloPlayCore
 )
 
 if (HoloPlayCore_FOUND)
+  if (NOT HoloPlayCore_RUNTIME_LIBRARY)
+    if (WIN32)
+      # It should be next to the library
+      get_filename_component(_dir ${HoloPlayCore_LIBRARY} DIRECTORY)
+      set(HoloPlayCore_RUNTIME_LIBRARY "${_dir}/HoloPlayCore.dll")
+      if (NOT EXISTS "${HoloPlayCore_RUNTIME_LIBRARY}")
+        message (FATAL_ERROR
+          "HoloPlayCore_RUNTIME_LIBRARY must be specified or placed "
+          "adjacent to HoloPlayCore_LIBRARY as HoloPlayCore.dll")
+      endif ()
+    else ()
+      # On Linux and Mac, it is the same as the library
+      set(HoloPlayCore_RUNTIME_LIBRARY "${HoloPlayCore_LIBRARY}")
+    endif ()
+  endif ()
+
   set(HoloPlayCore_INCLUDE_DIRS "${HoloPlayCore_INCLUDE_DIR}")
   set(HoloPlayCore_LIBRARIES "${HoloPlayCore_LIBRARY}")
   mark_as_advanced(HoloPlayCore_INCLUDE_DIR)
   mark_as_advanced(HoloPlayCore_LIBRARY)
+  mark_as_advanced(HoloPlayCore_RUNTIME_LIBRARY)
 
   if (NOT TARGET HoloPlayCore::HoloPlayCore)
     add_library(HoloPlayCore::HoloPlayCore UNKNOWN IMPORTED)
