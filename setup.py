@@ -44,7 +44,10 @@ def auto_download_vtk_wheel_sdk():
         platform_suffix = 'macosx_10_10_universal2'
 
     dir_name = f'{prefix}-{sdk_version}-{py_version}'
-    install_path = Path('.').resolve() / f'_deps/{dir_name}'
+    default_install_path = Path('.').resolve() / f'_deps/{dir_name}'
+    install_path = Path(os.getenv('VTK_WHEEL_SDK_INSTALL_PATH',
+                                  default_install_path))
+
     if install_path.exists():
         # It already exists, just return it
         return install_path.as_posix()

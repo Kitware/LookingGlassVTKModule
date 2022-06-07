@@ -22,6 +22,9 @@ env:
   # VTK will fix the rpaths, so we should skip this step
   CIBW_REPAIR_WHEEL_COMMAND:
 
+  # Run this before every build
+  CIBW_BEFORE_BUILD: .github/scripts/cibw_before_build.sh
+
 # Use bash by default for the run command
 defaults:
   run:
