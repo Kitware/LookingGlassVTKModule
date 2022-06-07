@@ -6,4 +6,8 @@ if [[ $RUNNER_OS == "Linux" ]]; then
     # complain if it can't find it. We will remove it from the wheel
     # after the repair is complete.
     yum install libXcursor-devel -y
+
+    # Make sure this is removed before every build, so we always
+    # get the correct one.
+    rm -rf $VTK_WHEEL_SDK_INSTALL_PATH
 fi
