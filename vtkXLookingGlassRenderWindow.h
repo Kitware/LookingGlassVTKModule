@@ -81,11 +81,90 @@ public:
    */
   std::string QuiltFileSuffix() const;
 
+  /**
+   * Turn on/off use of near and far clipping limits.
+   */
+  void SetUseClippingLimits(bool b);
+
+  /**
+   * Turn on/off use of near and far clipping limits.
+   */
+  bool GetUseClippingLimits() const;
+  vtkBooleanMacro(UseClippingLimits, bool);
+
+  /**
+   * Set/Get limit for the ratio of the far clipping plane to the focal
+   * distance. This is a mechanism to limit parallex and resulting
+   * ghosting when using the looking glass display. The typical value
+   * should be around 1.2.
+   */
+  void SetFarClippingLimit(double d);
+
+  /**
+   * Set/Get limit for the ratio of the far clipping plane to the focal
+   * distance. This is a mechanism to limit parallex and resulting
+   * ghosting when using the looking glass display. The typical value
+   * should be around 1.2.
+   */
+  double GetFarClippingLimit() const;
+
+  /**
+   * Set/Get limit for the ratio of the near clipping plane to the focal
+   * distance. This is a mechanism to limit parallex and resulting
+   * ghosting when using the looking glass display. The typical value
+   * should be around 0.8.
+   */
+  void SetNearClippingLimit(double d);
+
+  /**
+   * Set/Get limit for the ratio of the near clipping plane to the focal
+   * distance. This is a mechanism to limit parallex and resulting
+   * ghosting when using the looking glass display. The typical value
+   * should be around 0.8.
+   */
+  double GetNearClippingLimit() const;
+
+  /**
+   * Check if a movie quilt is currently being recorded.
+   */
+  bool IsRecordingQuilt() const;
+
+  /**
+   * Set/Get which LookingGlass device to use. DeviceIndex starts at 0 and
+   * increases.
+   */
+  void SetDeviceIndex(int i);
+
+  /**
+   * Set/Get which LookingGlass device to use. DeviceIndex starts at 0 and
+   * increases.
+   */
+  int GetDeviceIndex() const;
+
+  /**
+   * Set/Get which LookingGlass device type to target. This allows a quilt to be
+   * generated for a device that is not connected in the future.
+   */
+  void SetDeviceType(const std::string &t);
+
+  /**
+   * Set/Get which LookingGlass device type to target. This allows a quilt to be
+   * generated for a device that is not connected in the future.
+   */
+  std::string GetDeviceType() const;
+
+  /**
+   * Returns a vector of available device types.
+   */
+  static std::vector<std::string> GetDeviceTypes();
+
 protected:
   vtkXLookingGlassRenderWindow();
   ~vtkXLookingGlassRenderWindow() override;
 
-  vtkLookingGlassInterface* Interface;
+  vtkLookingGlassInterface* Interface = nullptr;
+
+  void InitializeInterface();
 
   void DoStereoRender() override;
   bool InStereoRender;
