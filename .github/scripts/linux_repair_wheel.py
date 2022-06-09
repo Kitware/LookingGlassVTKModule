@@ -49,6 +49,17 @@ with unzip_file(wheel_path) as unpacked_path:
     with change_dir(unpacked_path):
         contents_snapshot = list(Path().rglob('*'))
 
+        # Find the path to the RECORD file
+        record_glob = list(Path().glob('*.dist-info/RECORD'))
+        if len(record_glob) != 1:
+            raise Exception('Failed to find RECORD file')
+
+        record_path = record_glob[0]
+
+        # Read in the RECORD file. We will write it back out after the repair.
+        with open(record_path, 'r') as rf:
+            record_text = rf.read()
+
     # Copy the vtkmodules in
     destination = Path(unpacked_path) / 'vtkmodules'
     for f in vtkmodules:
@@ -79,3 +90,7 @@ with unzip_file(output_wheel) as unpacked_path:
                     shutil.rmtree(item)
                 else:
                     item.unlink()
+
+        # Replace the RECORD file with the old one
+        with open(record_path, 'w') as wf:
+            wf.write(record_text)
