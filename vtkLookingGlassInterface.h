@@ -214,7 +214,7 @@ public:
   std::string QuiltFileSuffix() const;
 
   /**
-   * Check if the quilt is currently being recorded.
+   * Check if a movie quilt is currently being recorded.
    */
   bool IsRecordingQuilt() const { return this->IsRecording; }
 

@@ -21,7 +21,17 @@ vtkStandardNewMacro(className);
 //------------------------------------------------------------------------------
 className::className()
 {
-  this->Interface = vtkLookingGlassInterface::New();
+  InitializeInterface();
+}
+
+//------------------------------------------------------------------------------
+void className::InitializeInterface()
+{
+  if (!this->Interface)
+  {
+    this->Interface = vtkLookingGlassInterface::New();
+  }
+
   this->Interface->Initialize();
   this->Interface->GetDisplaySize(this->Size[0], this->Size[1]);
   this->Interface->GetDisplayPosition(this->Position[0], this->Position[1]);
@@ -117,4 +127,92 @@ const char* className::MovieFileExtension()
 std::string className::QuiltFileSuffix() const
 {
   return this->Interface->QuiltFileSuffix();
+}
+
+//------------------------------------------------------------------------------
+void className::SetUseClippingLimits(bool b)
+{
+  this->Interface->SetUseClippingLimits(b);
+}
+
+//------------------------------------------------------------------------------
+bool className::GetUseClippingLimits() const
+{
+  return this->Interface->GetUseClippingLimits();
+}
+
+//------------------------------------------------------------------------------
+void className::SetFarClippingLimit(double d)
+{
+  this->Interface->SetFarClippingLimit(d);
+}
+
+//------------------------------------------------------------------------------
+double className::GetFarClippingLimit() const
+{
+  return this->Interface->GetFarClippingLimit();
+}
+
+//------------------------------------------------------------------------------
+void className::SetNearClippingLimit(double d)
+{
+  this->Interface->SetNearClippingLimit(d);
+}
+
+//------------------------------------------------------------------------------
+double className::GetNearClippingLimit() const
+{
+  return this->Interface->GetNearClippingLimit();
+}
+
+//------------------------------------------------------------------------------
+bool className::IsRecordingQuilt() const
+{
+  return this->Interface->IsRecordingQuilt();
+}
+
+//------------------------------------------------------------------------------
+void className::SetDeviceIndex(int i)
+{
+  this->Interface->SetDeviceIndex(i);
+}
+
+//------------------------------------------------------------------------------
+int className::GetDeviceIndex() const
+{
+  return this->Interface->GetDeviceIndex();
+}
+
+//------------------------------------------------------------------------------
+void className::SetDeviceType(const std::string& t)
+{
+  // Must re-build the interface from scratch
+  if (this->Interface)
+  {
+    this->Interface->ReleaseGraphicsResources(this);
+    this->Interface->Delete();
+    this->Interface = nullptr;
+  }
+
+  this->Interface = vtkLookingGlassInterface::New();
+  this->Interface->SetDeviceType(t);
+  InitializeInterface();
+}
+
+//------------------------------------------------------------------------------
+std::string className::GetDeviceType() const
+{
+  return this->Interface->GetDeviceType();
+}
+
+//------------------------------------------------------------------------------
+std::vector<std::string> className::GetDeviceTypes()
+{
+  std::vector<std::string> types;
+  for (const auto device : vtkLookingGlassInterface::GetDevices())
+  {
+    types.push_back(device.first);
+  }
+
+  return types;
 }
