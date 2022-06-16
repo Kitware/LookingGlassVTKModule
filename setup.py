@@ -132,6 +132,13 @@ cmake_args = [
 if sys.platform == 'linux':
     # We currently have to add this for the render window to get compiled
     cmake_args.append('-DVTK_USE_X:BOOL=ON')
+
+    if os.getenv('LINUX_VTK_LOOKING_GLASS_USE_COMPATIBLE_ABI') == '1':
+        # If building locally, it is necessary to set this in order to
+        # produce a wheel that can be used. Otherwise, the VTK symbols
+        # will not match those in the actual VTK wheel.
+        cmake_args.append('-DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0')
+
 elif sys.platform == 'darwin':
     # We currently have to add this for the render window to get compiled
     cmake_args.append('-DVTK_USE_COCOA:BOOL=ON')
