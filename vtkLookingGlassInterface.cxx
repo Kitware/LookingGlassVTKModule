@@ -857,15 +857,28 @@ void vtkLookingGlassInterface::SaveQuilt(const char* fileName)
 {
   vtkSmartPointer<vtkPixelBufferObject> pbo = this->QuiltTexture->Download();
 
-  vtkNew<vtkImageData> image;
-  image->SetDimensions(this->QuiltSize[0], this->QuiltSize[1], 1);
-  image->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
+  vtkNew<vtkImageData> buffer;
+  buffer->SetDimensions(this->QuiltSize[0], this->QuiltSize[1], 1);
+  buffer->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
 
   vtkPixelExtent ext(this->QuiltSize[0], this->QuiltSize[1]);
   auto* srcData = pbo->MapPackedBuffer();
-  auto* destData = image->GetScalarPointer(0, 0, 0);
+  auto* destData = buffer->GetScalarPointer(0, 0, 0);
   vtkPixelTransfer::Blit(ext, 4, VTK_UNSIGNED_CHAR, srcData, VTK_UNSIGNED_CHAR, destData);
   pbo->UnmapPackedBuffer();
+
+  // Convert to 3 components.
+  // Getting rid of the alpha component eliminates the transparent background.
+  vtkNew<vtkImageData> image;
+  image->SetDimensions(this->QuiltSize[0], this->QuiltSize[1], 1);
+  image->AllocateScalars(VTK_UNSIGNED_CHAR, 3);
+
+  auto oldArray = buffer->GetPointData()->GetScalars();
+  auto newArray = image->GetPointData()->GetScalars();
+  for (int i = 0; i < 3; ++i)
+  {
+    newArray->CopyComponent(i, oldArray, i);
+  }
 
   vtkNew<vtkPNGWriter> writer;
   writer->SetFileName(fileName);
