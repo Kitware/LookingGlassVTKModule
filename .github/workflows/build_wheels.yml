@@ -40,6 +40,10 @@ env:
   # Run this before every build
   CIBW_BEFORE_BUILD: bash .github/scripts/cibw_before_build.sh
 
+  CIBW_TEST_COMMAND: >
+    pip install -r {package}/Testing/Python/requirements.txt &&
+    pytest {package}/Testing/Python
+
 # Use bash by default for the run command
 defaults:
   run:
