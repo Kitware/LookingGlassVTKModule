@@ -225,25 +225,21 @@ vtkLookingGlassInterface::GetSettingsByDevice()
   if (settingsByDevice.empty())
   {
     settingsByDevice["standard"] =
-      DeviceSettings("8.9\" Looking Glass Display (Standard)", 2048, 2048, // QuiltSize
-        4, 8                                                               // QuiltTiles
-      );
+        DeviceSettings("Looking Glass 8.9\"", 2048, 2048, // QuiltSize
+                       4, 8                               // QuiltTiles
+        );
     settingsByDevice["portrait"] =
-      DeviceSettings("7.9\" Looking Glass Display (Portrait)", 3360, 3360, // QuiltSize
-        8, 6                                                               // QuiltTiles
-      );
+        DeviceSettings("Looking Glass Portrait", 3360, 3360, // QuiltSize
+                       8, 6                                  // QuiltTiles
+        );
     settingsByDevice["large"] =
-      DeviceSettings("15.6\" Looking Glass Display (Large)", 4096, 4096, // QuiltSize
-        5, 9                                                             // QuiltTiles
-      );
-    settingsByDevice["pro"] =
-      DeviceSettings("15.6\" Looking Glass Display (Pro)", 4096, 4096, // QuiltSize
-        5, 9                                                           // QuiltTiles
-      );
+        DeviceSettings("Looking Glass 16\"", 4096, 4096, // QuiltSize
+                       5, 9                              // QuiltTiles
+        );
     settingsByDevice["8k"] =
-      DeviceSettings("30\" Looking Glass Display (8K)", 4096 * 2, 4096 * 2, // QuiltSize
-        5, 9                                                                // QuiltTiles
-      );
+        DeviceSettings("Looking Glass 32\"", 4096 * 2, 4096 * 2, // QuiltSize
+                       5, 9                                      // QuiltTiles
+        );
   }
 
   return settingsByDevice;
