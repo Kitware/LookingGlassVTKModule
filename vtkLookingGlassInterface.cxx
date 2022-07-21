@@ -135,6 +135,7 @@ vtkLookingGlassInterface::vtkLookingGlassInterface()
   , QuiltFramebuffer(nullptr)
   , QuiltQuality(1)
   , IsRecording(false)
+  , AdjustCameraAspectRatio(1.777)
   , MovieImageBuffer(nullptr)
   , MovieImageData(nullptr)
   , MovieWriter(nullptr)
@@ -207,13 +208,14 @@ vtkLookingGlassInterface::~vtkLookingGlassInterface()
 }
 
 vtkLookingGlassInterface::DeviceSettings::DeviceSettings(const std::string& name, int quiltWidth,
-  int quiltHeight, int quiltTilesColumns, int quiltTilesRows)
+  int quiltHeight, int quiltTilesColumns, int quiltTilesRows, double aspectRatio)
 {
   this->Name = name;
   this->QuiltSize[0] = quiltWidth;
   this->QuiltSize[1] = quiltHeight;
   this->QuiltTiles[0] = quiltTilesColumns;
   this->QuiltTiles[1] = quiltTilesRows;
+  this->AspectRatio = aspectRatio;
 }
 
 std::map<std::string, vtkLookingGlassInterface::DeviceSettings>
@@ -224,22 +226,26 @@ vtkLookingGlassInterface::GetSettingsByDevice()
 
   if (settingsByDevice.empty())
   {
-    settingsByDevice["standard"] =
-        DeviceSettings("Looking Glass 8.9\"", 2048, 2048, // QuiltSize
-                       4, 8                               // QuiltTiles
-        );
-    settingsByDevice["portrait"] =
-        DeviceSettings("Looking Glass Portrait", 3360, 3360, // QuiltSize
-                       8, 6                                  // QuiltTiles
-        );
-    settingsByDevice["large"] =
-        DeviceSettings("Looking Glass 16\"", 4096, 4096, // QuiltSize
-                       5, 9                              // QuiltTiles
-        );
-    settingsByDevice["8k"] =
-        DeviceSettings("Looking Glass 32\"", 4096 * 2, 4096 * 2, // QuiltSize
-                       5, 9                                      // QuiltTiles
-        );
+    settingsByDevice["standard"] = DeviceSettings("Looking Glass 8.9\"",
+      2048, 2048, // QuiltSize
+      4, 8,       // QuiltTiles
+      1.6         // AspectRatio
+    );
+    settingsByDevice["portrait"] = DeviceSettings("Looking Glass Portrait",
+      3360, 3360, // QuiltSize
+      8, 6,       // QuiltTiles
+      0.75        // AspectRatio
+    );
+    settingsByDevice["large"] = DeviceSettings("Looking Glass 16\"",
+      4096, 4096, // QuiltSize
+      5, 9,       // QuiltTiles
+      1.777       // AspectRatio
+    );
+    settingsByDevice["8k"] = DeviceSettings("Looking Glass 32\"",
+      4096 * 2, 4096 * 2, // QuiltSize
+      5, 9,               // QuiltTiles
+      1.777               // AspectRatio
+    );
   }
 
   return settingsByDevice;
@@ -352,6 +358,7 @@ void vtkLookingGlassInterface::SetupQuiltSettings(const DeviceSettings& settings
 {
   std::copy(settings.QuiltSize, settings.QuiltSize + 2, this->QuiltSize);
   std::copy(settings.QuiltTiles, settings.QuiltTiles + 2, this->QuiltTiles);
+  this->AdjustCameraAspectRatio = settings.AspectRatio;
 };
 
 // set up the quilt settings
@@ -426,6 +433,10 @@ void vtkLookingGlassInterface::Initialize(void)
     this->DisplayPosition[0] = hpc_GetDevicePropertyWinX(this->DeviceIndex);
     this->DisplayPosition[1] = hpc_GetDevicePropertyWinY(this->DeviceIndex);
 
+    // Default the adjust camera aspect ratio to the device's aspect ratio
+    this->AdjustCameraAspectRatio =
+      static_cast<double>(this->DisplaySize[0]) / this->DisplaySize[1];
+
     // get the device type if one hasn't been set
     if (this->DeviceType.empty())
     {
@@ -488,7 +499,7 @@ void vtkLookingGlassInterface::AdjustCamera(vtkCamera* cam, int currentViewIndex
   tmp = tmp + vright * offset;
   cam->SetFocalPoint(tmp.GetData());
 
-  double aspectRatio = static_cast<double>(this->DisplaySize[0]) / this->DisplaySize[1];
+  double aspectRatio = this->AdjustCameraAspectRatio;
   double camViewAngle = vtkMath::RadiansFromDegrees(cam->GetViewAngle());
   double winSize = aspectRatio * cameraDistance * tan(camViewAngle / 2.0);
 
