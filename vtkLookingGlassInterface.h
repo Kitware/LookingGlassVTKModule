@@ -72,6 +72,11 @@ public:
 
   vtkGetMacro(ViewAngle, double);
 
+  // The aspect ratio to use when adjusting the camera to render the tiles.
+  // This is modifiable so that we can generate quilts for devices that have
+  // a different aspect ratio than the device currently connected.
+  vtkGetMacro(AdjustCameraAspectRatio, double);
+
   // Return the position in pixels in the quilt for that tile
   void GetTilePosition(int tile, int pos[2]);
 
@@ -267,11 +272,12 @@ protected:
    */
   struct DeviceSettings
   {
-    DeviceSettings(const std::string& name, int quiltWidth, int quiltHeight,
-                   int quiltTilesColumns, int quiltTilesRows);
+    DeviceSettings(const std::string& name, int quiltWidth, int quiltHeight, int quiltTilesColumns,
+      int quiltTilesRows, double aspectRatio);
     DeviceSettings() = default;
     int QuiltSize[2];
     int QuiltTiles[2];
+    double AspectRatio;
     std::string Name;
   };
 
@@ -341,6 +347,11 @@ protected:
 
   // Are we recording a movie
   bool IsRecording;
+
+  // The aspect ratio to use when adjusting the camera to render the tiles.
+  // This is modifiable so that we can generate quilts for devices that have
+  // a different aspect ratio than the device currently connected.
+  double AdjustCameraAspectRatio;
 
   // For recording a movie
   vtkImageData* MovieImageBuffer;
