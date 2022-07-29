@@ -202,7 +202,7 @@ vtkLookingGlassInterface::~vtkLookingGlassInterface()
   // must tear down the message pipe before shut down the app
   if (this->Connected)
   {
-    hpc_TeardownMessagePipe();
+    hpc_CloseApp();
     this->Connected = false;
   }
 }
@@ -417,7 +417,7 @@ void vtkLookingGlassInterface::Initialize(void)
   if (!GetLookingGlassInfo())
   {
     // must tear down the message pipe before shut down the app
-    hpc_TeardownMessagePipe();
+    hpc_CloseApp();
     this->Connected = false;
   }
   else
