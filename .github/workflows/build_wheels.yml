@@ -14,7 +14,7 @@ on:
 
 env:
   # Only support 64-bit CPython >= 3.7
-  CIBW_SKIP: "cp27-* cp35-* cp36-* pp* *-manylinux_i686 *-musllinux_* *-win32"
+  CIBW_SKIP: "cp27-* cp35-* cp36-* cp311-* pp* *-manylinux_i686 *-musllinux_* *-win32"
 
   # Need to match the version used by VTK
   CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.10
