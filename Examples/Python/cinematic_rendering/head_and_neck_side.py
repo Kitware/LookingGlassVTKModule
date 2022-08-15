@@ -1,6 +1,7 @@
 from pathlib import Path
 import signal
-import sys
+
+import numpy as np
 
 import vtk
 
@@ -25,6 +26,50 @@ if not Path(data_file).exists():
 volumetric_scattering_blending = 2
 global_illumination_reach = 0.2
 
+
+class InteractorStyle(vtk.vtkInteractorStyleTrackballCamera):
+    """A custom interactor to improve render rate during interaction"""
+    def __init__(self, mapper, volume_prop):
+        self.mapper = mapper
+        self.volume_prop = volume_prop
+
+        def decorate_start_interaction(callback):
+            def wrapped(*args):
+                # Turn off shading and jittering during interaction
+                self.volume_prop.ShadeOff()
+                self.mapper.UseJitteringOff()
+                return callback()
+            return wrapped
+
+        def decorate_stop_interaction(callback):
+            def wrapped(*args):
+                # Turn jittering and shading back after interaction is finished
+                self.mapper.UseJitteringOn()
+                self.volume_prop.ShadeOn()
+                return callback()
+            return wrapped
+
+        start_interaction_callbacks = {
+            "LeftButtonPressEvent": self.OnLeftButtonDown,
+            "MiddleButtonPressEvent": self.OnMiddleButtonDown,
+            "RightButtonPressEvent": self.OnRightButtonDown,
+        }
+
+        stop_interaction_callbacks = {
+            "LeftButtonReleaseEvent": self.OnLeftButtonUp,
+            "MiddleButtonReleaseEvent": self.OnMiddleButtonUp,
+            "RightButtonReleaseEvent": self.OnRightButtonUp,
+        }
+
+        for event, callback in start_interaction_callbacks.items():
+            self.AddObserver(event, decorate_start_interaction(callback))
+
+        for event, callback in stop_interaction_callbacks.items():
+            self.AddObserver(event, decorate_stop_interaction(callback))
+
+        super().__init__()
+
+
 # Read the data
 reader = vtk.vtkStructuredPointsReader()
 reader.SetFileName(data_file)
@@ -34,8 +79,6 @@ image = reader.GetOutput()
 ren = vtk.vtkRenderer()
 ren.SetBackground(0, 0, 0)
 
-# renWin = vtk.vtkRenderWindow()
-# renWin.SetSize(800, 800)
 renWin = vtkRenderingLookingGlass.vtkLookingGlassInterface.CreateLookingGlassRenderWindow()
 
 if renWin.GetDeviceType() == "standard":
@@ -47,17 +90,13 @@ renWin.AddRenderer(ren)
 iren = vtk.vtkRenderWindowInteractor()
 iren.SetRenderWindow(renWin)
 
-# Interaction is slow for this example, since it is in high res,
-# so just disable it via vtkInteractorStyleUser.
-iren_style = vtk.vtkInteractorStyleUser()
-iren.SetInteractorStyle(iren_style)
-
-# Use q to quit
-def on_key_press(style, event):
-    if style.GetKeySym() == 'q':
-        sys.exit()
-
-iren_style.AddObserver("KeyPressEvent", on_key_press)
+# The desired update rate is for a single render of the renderer.
+# For the looking glass, however, there will be one render for each
+# tile. Thus, we should modify the desired update rate to be the
+# previous update rate * the number of tiles, in order to improve
+# render rate during interaction.
+num_tiles = np.prod(renWin.GetInterface().GetQuiltTiles())
+iren.SetDesiredUpdateRate(iren.GetDesiredUpdateRate() * num_tiles)
 
 volume_prop = vtk.vtkVolumeProperty()
 volume_prop.ShadeOn()
@@ -95,7 +134,7 @@ opacity.AddPoint(155.059, 0.536765)
 opacity.AddPoint(249.496, 0.661765)
 opacity.AddPoint(489.881, 0.860294)
 opacity.AddPoint(3231.0, 0.875)
-volume_prop.SetScalarOpacity(opacity);
+volume_prop.SetScalarOpacity(opacity)
 
 volume = vtk.vtkVolume()
 volume.SetProperty(volume_prop)
@@ -136,11 +175,14 @@ for light in (light1, light2, light3, light4):
 camera = ren.GetActiveCamera()
 camera.SetPosition(583.0964911648575, 428.79195498984876, 661.5251868954026)
 camera.SetFocalPoint(46.636364907324946, 124.35708927120413, 675.7867746525995)
-camera.SetViewUp(0.044156836035224814, -0.031033174795286715, 0.998542495787477)
+camera.SetViewUp(0.044156836035224814, -0.03103317479528672, 0.998542495787477)
 
 ren.AddActor(volume)
 
+# Set up the interactor style
+iren_style = InteractorStyle(mapper, volume_prop)
+iren.SetInteractorStyle(iren_style)
+
 print("Starting rendering. Click display window and press 'q' to exit")
 
-renWin.Render()
 iren.Start()
