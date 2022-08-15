@@ -18,7 +18,7 @@ def auto_download_vtk_wheel_sdk():
 
     base_url = 'https://vtk.org/files/wheel-sdks/'
     prefix = 'vtk-wheel-sdk'
-    default_sdk_version = '9.2.0rc1'
+    default_sdk_version = '9.2.0rc2'
     # The user can set the sdk version via an environment variable
     sdk_version = os.getenv('VTK_WHEEL_SDK_VERSION', default_sdk_version)
     py_version_short = ''.join(map(str, sys.version_info[:2]))
@@ -159,5 +159,5 @@ setup(
     packages=['vtkmodules'],
     package_dir={'vtkmodules': 'lib/vtkmodules'},
     cmake_args=cmake_args,
-    install_requires=['vtk==9.2.0rc1'],
+    install_requires=['vtk==9.2.0rc2'],
 )
