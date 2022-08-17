@@ -17,6 +17,11 @@ ffmpeg -i input_file.ogv -c:v libx265 -crf 10 output_file.mp4
 Where `libx265` specifies to use the h.265 video codec, and `crf`
 specifies the video quality (where 0 is lossless and 51 is the lowest
 quality).
+
+Example output of this script that was generated for a 16" device and
+converted to MP4 may be found here:
+
+https://drive.google.com/file/d/1WUFDhrcLsajCV7TUoNKFCII1VGNHcrz_/view?usp=sharing
 """
 
 from pathlib import Path
