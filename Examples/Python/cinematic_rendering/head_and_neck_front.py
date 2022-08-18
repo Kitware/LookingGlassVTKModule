@@ -26,50 +26,6 @@ if not Path(data_file).exists():
 volumetric_scattering_blending = 2
 global_illumination_reach = 0.2
 
-
-class InteractorStyle(vtk.vtkInteractorStyleTrackballCamera):
-    """A custom interactor to improve render rate during interaction"""
-    def __init__(self, mapper, volume_prop):
-        self.mapper = mapper
-        self.volume_prop = volume_prop
-
-        def decorate_start_interaction(callback):
-            def wrapped(*args):
-                # Turn off shading and jittering during interaction
-                self.volume_prop.ShadeOff()
-                self.mapper.UseJitteringOff()
-                return callback()
-            return wrapped
-
-        def decorate_stop_interaction(callback):
-            def wrapped(*args):
-                # Turn jittering and shading back after interaction is finished
-                self.mapper.UseJitteringOn()
-                self.volume_prop.ShadeOn()
-                return callback()
-            return wrapped
-
-        start_interaction_callbacks = {
-            "LeftButtonPressEvent": self.OnLeftButtonDown,
-            "MiddleButtonPressEvent": self.OnMiddleButtonDown,
-            "RightButtonPressEvent": self.OnRightButtonDown,
-        }
-
-        stop_interaction_callbacks = {
-            "LeftButtonReleaseEvent": self.OnLeftButtonUp,
-            "MiddleButtonReleaseEvent": self.OnMiddleButtonUp,
-            "RightButtonReleaseEvent": self.OnRightButtonUp,
-        }
-
-        for event, callback in start_interaction_callbacks.items():
-            self.AddObserver(event, decorate_start_interaction(callback))
-
-        for event, callback in stop_interaction_callbacks.items():
-            self.AddObserver(event, decorate_stop_interaction(callback))
-
-        super().__init__()
-
-
 # Read the data
 reader = vtk.vtkStructuredPointsReader()
 reader.SetFileName(data_file)
@@ -181,8 +137,15 @@ camera.SetViewUp(0.01802597816737277, 0.10317003294046821, 0.9945003813041864)
 ren.AddActor(volume)
 
 # Set up the interactor style
-iren_style = InteractorStyle(mapper, volume_prop)
+iren_style = vtk.vtkInteractorStyleTrackballCamera()
 iren.SetInteractorStyle(iren_style)
+
+def adjust_resolution(mapper, event):
+    interactive = volume.GetAllocatedRenderTime() < 1
+    mapper.SetUseJittering(not interactive)
+    volume_prop.SetShade(not interactive)
+
+mapper.AddObserver("VolumeMapperRenderStartEvent", adjust_resolution)
 
 print("Starting rendering. Click display window and press 'q' to exit")
 
