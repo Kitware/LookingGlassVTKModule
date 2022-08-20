@@ -49,7 +49,7 @@ def auto_download_vtk_wheel_sdk():
             # See: https://github.com/pypa/cibuildwheel/discussions/997
             platform_suffix = 'macosx_11_0_arm64'
 
-    dir_name = f'{prefix}-{sdk_version}-{py_version}'
+    dir_name = f'{prefix}-{sdk_version}-{py_version}-{platform_suffix}'
     default_install_path = Path('.').resolve() / f'_deps/{dir_name}'
     install_path = Path(os.getenv('VTK_WHEEL_SDK_INSTALL_PATH',
                                   default_install_path))
