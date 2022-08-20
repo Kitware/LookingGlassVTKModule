@@ -4,8 +4,8 @@ set(proj HoloPlayCore)
 set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
 FetchContent_Populate(${proj}
   SOURCE_DIR   ${EP_SOURCE_DIR}
-  URL          https://www.paraview.org/files/dependencies/HoloPlayCore-0.1.1-Open-20200923.tar.gz
-  URL_HASH MD5=b435316fa1f8454ba180e72608c3c28f
+  URL          https://www.paraview.org/files/dependencies/LookingGlassCoreSDK-Open-20220819.tgz
+  URL_HASH MD5=23a2a373c9d1c0f203251dc244f97f79
   QUIET
   )
 
