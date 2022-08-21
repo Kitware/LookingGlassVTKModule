@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import platform
 import shutil
 import subprocess
 import sys
@@ -44,9 +45,13 @@ def auto_download_vtk_wheel_sdk():
             # The platform suffix is slightly different on Mac here
             platform_suffix = 'macosx_10_10_universal2'
 
-        if os.environ.get('ARCHFLAGS') == '-arch arm64':
+        is_arm = (
+            platform.machine() == 'arm64' or
+            # ARCHFLAGS: see https://github.com/pypa/cibuildwheel/discussions/997
+            os.getenv('ARCHFLAGS') == '-arch arm64'
+        )
+        if is_arm:
             # It's an arm64 build
-            # See: https://github.com/pypa/cibuildwheel/discussions/997
             platform_suffix = 'macosx_11_0_arm64'
 
     dir_name = f'{prefix}-{sdk_version}-{py_version}-{platform_suffix}'
