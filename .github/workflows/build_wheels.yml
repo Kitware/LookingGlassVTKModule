@@ -76,6 +76,13 @@ jobs:
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
 
+      - name: Upload skbuild if an error occurred (for debugging)
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: skbuild
+          path: ${{ github.workspace }}/_skbuild
+
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
