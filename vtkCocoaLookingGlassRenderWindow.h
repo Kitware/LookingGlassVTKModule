@@ -138,7 +138,7 @@ public:
    * Set/Get which LookingGlass device to use. DeviceIndex starts at 0 and
    * increases.
    */
-  void SetDeviceIndex(int i);
+  void SetDeviceIndex(int i) override;
 
   /**
    * Set/Get which LookingGlass device to use. DeviceIndex starts at 0 and
