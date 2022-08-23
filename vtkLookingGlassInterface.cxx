@@ -765,7 +765,7 @@ void vtkLookingGlassInterface::RenderQuilt(vtkOpenGLRenderWindow* rw,
   // save the original camera settings
   vtkRenderer* aren;
   std::vector<vtkCamera*> Cameras;
-  for (renderers->InitTraversal(rsit); aren = renderers->GetNextRenderer(rsit);)
+  for (renderers->InitTraversal(rsit); (aren = renderers->GetNextRenderer(rsit));)
   {
     // Ugly piece of code - we need to know if the camera already
     // exists or not. If it does not yet exist, we must reset the
@@ -792,7 +792,7 @@ void vtkLookingGlassInterface::RenderQuilt(vtkOpenGLRenderWindow* rw,
     ostate->vtkglScissor(0, 0, renderSize[0], renderSize[1]);
 
     int count = 0;
-    for (renderers->InitTraversal(rsit); aren = renderers->GetNextRenderer(rsit); ++count)
+    for (renderers->InitTraversal(rsit); (aren = renderers->GetNextRenderer(rsit)); ++count)
     {
       // adjust camera
       vtkCamera* cam = aren->GetActiveCamera();
@@ -847,7 +847,7 @@ void vtkLookingGlassInterface::RenderQuilt(vtkOpenGLRenderWindow* rw,
 
   // restore the original camera settings
   int count = 0;
-  for (renderers->InitTraversal(rsit); aren = renderers->GetNextRenderer(rsit); ++count)
+  for (renderers->InitTraversal(rsit); (aren = renderers->GetNextRenderer(rsit)); ++count)
   {
     aren->SetActiveCamera(Cameras[count]);
     Cameras[count]->Delete();
