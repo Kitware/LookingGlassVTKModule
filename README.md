@@ -75,6 +75,25 @@ implementations. In theory, this module should be able to generate and
 display quilt images even if no Looking Glass hardware is present, but
 those capabilities has not been extensively tested.
 
+## Building and running the C++ tests
+
+In order to build and run the C++ tests, this module must be built from
+within VTK (see [the required CMake settings](#cmake-configuration-of-vtk))
+with the additional CMake flag `-DVTK_BUILD_TESTING=ON`.
+
+After building, within the build directory, the tests should be located
+in `./bin/vtkLookingGlassCxxTests`, and the test data should be located in
+`./ExternalData/Testing/`. The tests may be executed like the following:
+
+```bash
+./bin/vtkLookingGlassCxxTests TestDragon -D ./ExternalData/Testing/ -I
+./bin/vtkLookingGlassCxxTests TestLookingGlassPass -D ./ExternalData/Testing/ -I
+```
+
+Where the `-D` flag provides the location of the test data directory,
+and the `-I` indiciates that the test should run interactively (otherwise,
+the application will render once and close immediately).
+
 ## Developement/Bug Reports
 
 If you run into issues with this module please submit a bug report at
