@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import platform
 import shutil
 import subprocess
 import sys
@@ -39,11 +40,21 @@ def auto_download_vtk_wheel_sdk():
 
     platform_suffix = platform_suffixes[sys.platform]
 
-    if sys.platform == 'darwin' and sys.version_info[:2] > (3, 9):
-        # The platform suffix is slightly different on Mac here
-        platform_suffix = 'macosx_10_10_universal2'
+    if sys.platform == 'darwin':
+        if sys.version_info[:2] > (3, 9):
+            # The platform suffix is slightly different on Mac here
+            platform_suffix = 'macosx_10_10_universal2'
 
-    dir_name = f'{prefix}-{sdk_version}-{py_version}'
+        is_arm = (
+            platform.machine() == 'arm64' or
+            # ARCHFLAGS: see https://github.com/pypa/cibuildwheel/discussions/997
+            os.getenv('ARCHFLAGS') == '-arch arm64'
+        )
+        if is_arm:
+            # It's an arm64 build
+            platform_suffix = 'macosx_11_0_arm64'
+
+    dir_name = f'{prefix}-{sdk_version}-{py_version}-{platform_suffix}'
     default_install_path = Path('.').resolve() / f'_deps/{dir_name}'
     install_path = Path(os.getenv('VTK_WHEEL_SDK_INSTALL_PATH',
                                   default_install_path))
@@ -142,6 +153,11 @@ if sys.platform == 'linux':
 elif sys.platform == 'darwin':
     # We currently have to add this for the render window to get compiled
     cmake_args.append('-DVTK_USE_COCOA:BOOL=ON')
+
+    if os.getenv('ARCHFLAGS') == '-arch arm64':
+        # We are cross-compiling and need to set CMAKE_SYSTEM_NAME as well.
+        # NOTE: we haven't actually succeeded in cross-compiling this module.
+        cmake_args.append('-DCMAKE_SYSTEM_NAME=Darwin')
 
 setup(
     name='vtk-lookingglass',

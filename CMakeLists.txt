@@ -15,6 +15,8 @@ elseif (WIN32)
 elseif (VTK_USE_COCOA)
   list(APPEND sources vtkCocoaLookingGlassRenderWindow.mm)
   list(APPEND headers vtkCocoaLookingGlassRenderWindow.h)
+  # For some reason, this isn't being added automatically, so add it now
+  add_definitions(-DVTK_USE_COCOA)
 endif()
 
 
