@@ -41,10 +41,6 @@ def auto_download_vtk_wheel_sdk():
     platform_suffix = platform_suffixes[sys.platform]
 
     if sys.platform == 'darwin':
-        if sys.version_info[:2] > (3, 9):
-            # The platform suffix is slightly different on Mac here
-            platform_suffix = 'macosx_10_10_universal2'
-
         is_arm = (
             platform.machine() == 'arm64' or
             # ARCHFLAGS: see https://github.com/pypa/cibuildwheel/discussions/997
