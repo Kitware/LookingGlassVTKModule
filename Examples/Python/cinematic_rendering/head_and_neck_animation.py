@@ -12,11 +12,12 @@ or WEBM format. If VTK writes out the video in a different format,
 it may need to be converted. Here's an example of a conversion
 using ffmpeg:
 
-ffmpeg -i input_file.ogv -c:v libx265 -crf 10 output_file.mp4
+ffmpeg -i input_file.ogv -c:v libx265 -pix_fmt yuv420p -crf 10 output_file.mp4
 
-Where `libx265` specifies to use the h.265 video codec, and `crf`
+Where `libx265` specifies to use the h.265 video codec, `crf`
 specifies the video quality (where 0 is lossless and 51 is the lowest
-quality).
+quality), and 'pix_fmt' is required if you want to include the
+mp4 in a playlist that is sync'd with a portrait device.
 
 Example output of this script that was generated for a 16" device and
 converted to MP4 may be found here:
@@ -66,9 +67,7 @@ ren.SetBackground(0, 0, 0)
 # renWin.SetSize(800, 800)
 renWin = vtkRenderingLookingGlass.vtkLookingGlassInterface.CreateLookingGlassRenderWindow()
 
-if renWin.GetDeviceType() == "standard":
-    # This looks better on large settings
-    renWin.SetDeviceType("large")
+renWin.SetDeviceType("portrait")
 
 renWin.AddRenderer(ren)
 
