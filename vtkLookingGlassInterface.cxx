@@ -246,6 +246,11 @@ vtkLookingGlassInterface::GetSettingsByDevice()
       5, 9,               // QuiltTiles
       1.777               // AspectRatio
     );
+    settingsByDevice["8k_gen2"] = DeviceSettings("Looking Glass 32\" (gen2)",
+      4096 * 2, 4096 * 2, // QuiltSize
+      5, 9,               // QuiltTiles
+      1.777               // AspectRatio
+    );
     settingsByDevice["65"] = DeviceSettings("Looking Glass 65\"",
       8192, 8192,  // QuiltSize
       8, 9,        // QuiltTiles
