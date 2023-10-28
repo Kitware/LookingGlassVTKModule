@@ -2,6 +2,7 @@ from pathlib import Path
 import signal
 
 import numpy as np
+import logging
 
 import vtk
 
@@ -9,6 +10,8 @@ from vtk import vtkRenderingLookingGlass
 
 # Kill the program when ctrl-c is used
 signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+logging.basicConfig(level=logging.INFO)
 
 data_url = "https://data.kitware.com/api/v1/file/62daaa69bddec9d0c4bfd42a/download"
 data_file = "head_and_neck_ct.vtk"
@@ -37,9 +40,6 @@ ren.SetBackground(0, 0, 0)
 
 renWin = vtkRenderingLookingGlass.vtkLookingGlassInterface.CreateLookingGlassRenderWindow()
 
-if renWin.GetDeviceType() == "standard":
-    # This looks better on large settings
-    renWin.SetDeviceType("large")
 
 renWin.AddRenderer(ren)
 
@@ -58,6 +58,11 @@ volume_prop = vtk.vtkVolumeProperty()
 volume_prop.ShadeOn()
 volume_prop.SetScalarOpacityUnitDistance(1.5)
 volume_prop.SetInterpolationType(vtk.VTK_LINEAR_INTERPOLATION)
+
+volume_prop_l = vtk.vtkVolumeProperty()
+volume_prop_l.ShadeOn()
+volume_prop_l.SetScalarOpacityUnitDistance(1.5)
+volume_prop_l.SetInterpolationType(vtk.VTK_LINEAR_INTERPOLATION)
 
 # volume_prop.SetDiffuse(1.0)
 # volume_prop.SetAmbient(0.3)
@@ -92,8 +97,36 @@ opacity.AddPoint(489.881, 0.860294)
 opacity.AddPoint(3231.0, 0.875)
 volume_prop.SetScalarOpacity(opacity)
 
+opacity_l = vtk.vtkPiecewiseFunction()
+opacity_l.AddPoint(-1000, 0)
+opacity_l.AddPoint(-600, 0)
+opacity_l.AddPoint(-599, 0.15)
+opacity_l.AddPoint(-400, 0.15)
+opacity_l.AddPoint(-399, 0)
+opacity_l.AddPoint(2952, 0)
+volume_prop_l.SetScalarOpacity(opacity_l)
+
+color_l = vtk.vtkColorTransferFunction()
+color_l.AddRGBPoint(-1000, 0.3, 0.3, 1)
+color_l.AddRGBPoint(-600, 0, 0, 1)
+color_l.AddRGBPoint(-530, 0.134704, 0.781726, 0.0724558)
+color_l.AddRGBPoint(-460, 0.929244, 1, 0.109473)
+color_l.AddRGBPoint(-400, 0.888889, 0.254949, 0.0240258)
+color_l.AddRGBPoint(2952, 1, 0.3, 0.3)
+volume_prop_l.SetColor(color_l)
+
 volume = vtk.vtkVolume()
 volume.SetProperty(volume_prop)
+
+def on_key_press(style, event):
+    if style.GetInteractor().GetKeySym() == 'l':
+        logging.info('Switching to lung TF')
+        volume.SetProperty(volume_prop_l)
+        renWin.Render()
+    elif style.GetInteractor().GetKeySym() == 'b':
+        logging.info('Switching to bone TF')
+        volume.SetProperty(volume_prop)
+        renWin.Render()
 
 mapper = vtk.vtkGPUVolumeRayCastMapper()
 mapper.SetInputData(image)
@@ -139,11 +172,18 @@ ren.AddActor(volume)
 # Set up the interactor style
 iren_style = vtk.vtkInteractorStyleTrackballCamera()
 iren.SetInteractorStyle(iren_style)
+iren_style.AddObserver("KeyPressEvent", on_key_press)
 
 def adjust_resolution(mapper, event):
     interactive = volume.GetAllocatedRenderTime() < 1
-    mapper.SetUseJittering(not interactive)
-    volume_prop.SetShade(not interactive)
+    mapper.SetAutoAdjustSampleDistances(not interactive)
+    mapper.SetVolumetricScatteringBlending(0.0 if interactive else volumetric_scattering_blending)
+    mapper.SetAutoAdjustSampleDistances(not interactive)
+    mapper.SetSampleDistance(5.0 if interactive else 1.0)
+    light1.SetSwitch(not interactive)
+    light2.SetSwitch(not interactive)
+    light3.SetSwitch(not interactive)
+    light4.SetSwitch(not interactive)
 
 mapper.AddObserver("VolumeMapperRenderStartEvent", adjust_resolution)
 
