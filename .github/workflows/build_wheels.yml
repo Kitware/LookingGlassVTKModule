@@ -15,7 +15,7 @@ on:
 env:
   # Only support 64-bit CPython >= 3.7
   # VTK does not currently build python 3.8 arm64 wheels, so skip it too
-  CIBW_SKIP: "cp27-* cp35-* cp36-* cp311-* pp* *-manylinux_i686 *-musllinux_* *-win32 cp38-macosx_arm64"
+  CIBW_SKIP: "cp27-* cp35-* cp36-* cp311-* cp312-* pp* *-manylinux_i686 *-musllinux_* *-win32 cp38-macosx_arm64"
 
   # Need to match the version used by VTK
   CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.10
