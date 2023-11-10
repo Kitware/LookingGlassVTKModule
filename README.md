@@ -17,6 +17,14 @@ to render to the Looking Glass render window by simply swapping out the
 example's render window with one created via
 `vtkLookingGlassInterface.CreateLookingGlassRenderWindow()`.
 
+### Cinematic Rendering
+
+Some notable cinematic rendering examples are available in the `Examples/Python/cinematic_rendering`
+directory. These use VTK's new light scattering model to create realistic
+volumetric renderings of medical data. An example video is provided below.
+
+[![Cinematic Rendering Example](https://res.cloudinary.com/marcomontalbano/image/upload/v1664546921/video_to_markdown/images/youtube--9FC3auNbxnY-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/watch?v=9FC3auNbxnY&ab_channel=StephenAylward "Cinematic Rendering Example")
+
 ## C++ Support
 For C++ support, there are two main approaches.
 You can create a OS specific Looking Glass render window and use it as you
