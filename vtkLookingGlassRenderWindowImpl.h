@@ -15,6 +15,7 @@
 
 #include "vtkLookingGlassInterface.h"
 #include "vtkObjectFactory.h"
+#include "vtkRenderingOpenGLConfigure.h" // for VTK_USE_COCOA
 
 vtkStandardNewMacro(className);
 
