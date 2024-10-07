@@ -81,13 +81,14 @@ jobs:
 
       - name: Upload skbuild if an error occurred (for debugging)
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: skbuild
           path: ${{ github.workspace }}/_skbuild
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
+          name: "artifacts-${{ matrix.os }}"
           path: ./wheelhouse/*.whl
 
   upload_pypi:
