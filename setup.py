@@ -150,11 +150,6 @@ elif sys.platform == 'darwin':
     # We currently have to add this for the render window to get compiled
     cmake_args.append('-DVTK_USE_COCOA:BOOL=ON')
 
-    if os.getenv('ARCHFLAGS') == '-arch arm64':
-        # We are cross-compiling and need to set CMAKE_SYSTEM_NAME as well.
-        # NOTE: we haven't actually succeeded in cross-compiling this module.
-        cmake_args.append('-DCMAKE_SYSTEM_NAME=Darwin')
-
 setup(
     name='vtk-lookingglass',
     description='Looking Glass support for VTK Python.',

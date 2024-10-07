@@ -28,12 +28,6 @@ env:
   # In the Linux docker container, install the wheel SDKs to this location
   CIBW_ENVIRONMENT_LINUX: VTK_WHEEL_SDK_INSTALL_PATH=/vtk-wheel-sdk
 
-  # NOTE: cross-compilation is not currently working for us for arm64.
-  # We are going to turn it off and build them manually until GitHub Actions
-  # makes arm64 runners available.
-  # Build both x86_64 and arm64 (through cross-compilation) wheels on Mac
-  # CIBW_ARCHS_MACOS: x86_64 arm64
-
   # VTK already fixes the rpaths, so we can skip this step for MacOS
   CIBW_REPAIR_WHEEL_COMMAND_MACOS:
 
