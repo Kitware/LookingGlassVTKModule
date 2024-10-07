@@ -30,7 +30,7 @@ def auto_download_vtk_wheel_sdk():
         py_version += 'm'
 
     platform_suffixes = {
-        'linux': 'manylinux_2_17_x86_64.manylinux2014_x86_64',
+        'linux': 'linux_x86_64',
         'darwin': 'macosx_10_10_x86_64',
         'win32': 'win_amd64',
     }
