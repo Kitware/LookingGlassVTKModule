@@ -13,6 +13,11 @@ on:
   workflow_dispatch:
 
 env:
+
+  # Supply options to `pip` to affect how it downloads vtk nightly
+  # wheels from VTK gitlab package registry.
+  PIP_EXTRA_INDEX_URL: https://wheels.vtk.org
+
   # Only support 64-bit CPython >= 3.8 && <= 3.12
   # VTK does not currently build python 3.8 arm64 wheels, so skip it too
   CIBW_SKIP: "cp27-* cp35-* cp36-* cp37-* cp311-* cp312-* cp313-* pp* *-manylinux_i686 *-musllinux_* *-win32 cp38-macosx_arm64"
@@ -42,7 +47,7 @@ env:
   CIBW_REPAIR_WHEEL_COMMAND_LINUX: .github/scripts/linux_repair_wheel.py {wheel} {dest_dir}
 
   # Pass these variables into the Linux docker containers
-  CIBW_ENVIRONMENT_PASS_LINUX: RUNNER_OS VTK_WHEEL_SDK_INSTALL_PATH
+  CIBW_ENVIRONMENT_PASS_LINUX: RUNNER_OS VTK_WHEEL_SDK_INSTALL_PATH PIP_EXTRA_INDEX_URL
 
   # Run this before every build
   CIBW_BEFORE_BUILD: bash .github/scripts/cibw_before_build.sh
