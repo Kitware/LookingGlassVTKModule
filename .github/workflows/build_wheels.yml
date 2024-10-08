@@ -13,21 +13,20 @@ on:
   workflow_dispatch:
 
 env:
-  # Only support 64-bit CPython >= 3.7
+
+  # Supply options to `pip` to affect how it downloads vtk nightly
+  # wheels from VTK gitlab package registry.
+  PIP_EXTRA_INDEX_URL: https://wheels.vtk.org
+
+  # Only support 64-bit CPython >= 3.8 && <= 3.12
   # VTK does not currently build python 3.8 arm64 wheels, so skip it too
-  CIBW_SKIP: "cp27-* cp35-* cp36-* cp311-* cp312-* pp* *-manylinux_i686 *-musllinux_* *-win32 cp38-macosx_arm64"
+  CIBW_SKIP: "cp27-* cp35-* cp36-* cp37-* cp311-* cp312-* cp313-* pp* *-manylinux_i686 *-musllinux_* *-win32 cp38-macosx_arm64"
 
   # Need to match the version used by VTK
   CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.10
 
   # In the Linux docker container, install the wheel SDKs to this location
   CIBW_ENVIRONMENT_LINUX: VTK_WHEEL_SDK_INSTALL_PATH=/vtk-wheel-sdk
-
-  # NOTE: cross-compilation is not currently working for us for arm64.
-  # We are going to turn it off and build them manually until GitHub Actions
-  # makes arm64 runners available.
-  # Build both x86_64 and arm64 (through cross-compilation) wheels on Mac
-  # CIBW_ARCHS_MACOS: x86_64 arm64
 
   # VTK already fixes the rpaths, so we can skip this step for MacOS
   CIBW_REPAIR_WHEEL_COMMAND_MACOS:
@@ -42,7 +41,7 @@ env:
   CIBW_REPAIR_WHEEL_COMMAND_LINUX: .github/scripts/linux_repair_wheel.py {wheel} {dest_dir}
 
   # Pass these variables into the Linux docker containers
-  CIBW_ENVIRONMENT_PASS_LINUX: RUNNER_OS VTK_WHEEL_SDK_INSTALL_PATH
+  CIBW_ENVIRONMENT_PASS_LINUX: RUNNER_OS VTK_WHEEL_SDK_INSTALL_PATH PIP_EXTRA_INDEX_URL
 
   # Run this before every build
   CIBW_BEFORE_BUILD: bash .github/scripts/cibw_before_build.sh
@@ -81,13 +80,14 @@ jobs:
 
       - name: Upload skbuild if an error occurred (for debugging)
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: skbuild
           path: ${{ github.workspace }}/_skbuild
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
+          name: "artifacts-${{ matrix.os }}"
           path: ./wheelhouse/*.whl
 
   upload_pypi:

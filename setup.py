@@ -19,7 +19,7 @@ def auto_download_vtk_wheel_sdk():
 
     base_url = 'https://vtk.org/files/wheel-sdks/'
     prefix = 'vtk-wheel-sdk'
-    default_sdk_version = '9.2.2'
+    default_sdk_version = '9.3.20241005.dev0'
     # The user can set the sdk version via an environment variable
     sdk_version = os.getenv('VTK_WHEEL_SDK_VERSION', default_sdk_version)
     py_version_short = ''.join(map(str, sys.version_info[:2]))
@@ -30,7 +30,7 @@ def auto_download_vtk_wheel_sdk():
         py_version += 'm'
 
     platform_suffixes = {
-        'linux': 'manylinux_2_17_x86_64.manylinux2014_x86_64',
+        'linux': 'linux_x86_64',
         'darwin': 'macosx_10_10_x86_64',
         'win32': 'win_amd64',
     }
@@ -150,11 +150,6 @@ elif sys.platform == 'darwin':
     # We currently have to add this for the render window to get compiled
     cmake_args.append('-DVTK_USE_COCOA:BOOL=ON')
 
-    if os.getenv('ARCHFLAGS') == '-arch arm64':
-        # We are cross-compiling and need to set CMAKE_SYSTEM_NAME as well.
-        # NOTE: we haven't actually succeeded in cross-compiling this module.
-        cmake_args.append('-DCMAKE_SYSTEM_NAME=Darwin')
-
 setup(
     name='vtk-lookingglass',
     description='Looking Glass support for VTK Python.',
@@ -171,5 +166,5 @@ setup(
     packages=['vtkmodules'],
     package_dir={'vtkmodules': 'lib/vtkmodules'},
     cmake_args=cmake_args,
-    install_requires=['vtk==9.2.2'],
+    install_requires=['vtk==9.3.20241005.dev0'],
 )

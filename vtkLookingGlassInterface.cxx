@@ -63,7 +63,7 @@ IN THE SOFTWARE.
 #include "vtkTextureObject.h"
 #include "vtkVectorOperators.h"
 
-#include "vtk_glew.h"
+#include "vtk_glad.h"
 
 #include "vtkRenderingOpenGLConfigure.h"
 
