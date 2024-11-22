@@ -22,6 +22,7 @@
 
 #include "vtkCocoaRenderWindow.h"
 #include "vtkRenderingLookingGlassModule.h" // For export macro
+#include <vector>
 
 class vtkLookingGlassInterface;
 
