@@ -61,7 +61,7 @@ IN THE SOFTWARE.
 #include "vtkRendererCollection.h"
 #include "vtkShaderProgram.h"
 #include "vtkTextureObject.h"
-#include "vtkVectorOperators.h"
+#include "vtkVector.h"
 
 #include "vtk_glad.h"
 
