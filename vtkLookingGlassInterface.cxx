@@ -256,6 +256,52 @@ vtkLookingGlassInterface::GetSettingsByDevice()
       8, 9,        // QuiltTiles
       1.777        // AspectRatio
     );
+    settingsByDevice["go_p"] = DeviceSettings("Looking Glass Go Portrait",
+      4092, 4092, // QuiltSize
+      11, 6,      // QuiltTiles (11 columns x 6 rows)
+      0.5625      // AspectRatio (1440/2560)
+    );
+    settingsByDevice["4k_gen2"] = DeviceSettings("Looking Glass 16\"",
+      4095, 4095, // QuiltSize
+      5, 9,       // QuiltTiles
+      1.777       // AspectRatio
+    );
+    settingsByDevice["65_gen2"] = DeviceSettings("Looking Glass 65\" Light Field Display",
+      8192, 8192, // QuiltSize
+      8, 9,       // QuiltTiles
+      1.777       // AspectRatio
+    );
+    settingsByDevice["16_gen3_l"] = DeviceSettings("Looking Glass 16\" Light Field Display (Landscape)",
+      5999, 5999,  // QuiltSize
+      7, 7,        // QuiltTiles
+      1.777        // AspectRatio
+    );
+    settingsByDevice["16_gen3_p"] = DeviceSettings("Looking Glass 16\" Light Field Display (Portrait)",
+      5995, 6000,  // QuiltSize
+      11, 6,       // QuiltTiles
+      0.5625       // AspectRatio
+    );
+    settingsByDevice["27_gen3_l"] = DeviceSettings("Looking Glass 27\" Light Field Display (Landscape)",
+      7680, 4320, // QuiltSize
+      8, 6,       // QuiltTiles
+      1.777       // AspectRatio
+    );
+    settingsByDevice["27_gen3_p"] = DeviceSettings("Looking Glass 27\" Light Field Display (Portrait)",
+      7680, 4320,  // QuiltSize
+      12, 4,       // QuiltTiles
+      0.5625       // AspectRatio
+    );
+    settingsByDevice["32_gen3_l"] = DeviceSettings("Looking Glass 32\" Light Field Display (Landscape)",
+      8190, 8190, // QuiltSize
+      7, 7,       // QuiltTiles
+      1.777       // AspectRatio
+    );
+    settingsByDevice["32_gen3_p"] = DeviceSettings("Looking Glass 32\" Light Field Display (Portrait)",
+      8184, 8184,  // QuiltSize
+      12, 4,       // QuiltTiles
+      0.5625       // AspectRatio
+    );
+    //TODO: Could not find specs for "pro", "proto", and "kiosk"
   }
 
   return settingsByDevice;
