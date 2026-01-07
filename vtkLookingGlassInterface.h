@@ -111,18 +111,6 @@ public:
 
   //@{
   /**
-   * Set/Get the quality of the quilt to use. 0 is the lowest setting
-   * and 2 is the highest. Higher settings require more texture memory.
-   * The default setting is 1.
-   */
-  VTK_DEPRECATED_IN_9_2_0("Quality is now based on device type.")
-  vtkSetMacro(QuiltQuality, int);
-  VTK_DEPRECATED_IN_9_2_0("Quality is now based on device type.")
-  vtkGetMacro(QuiltQuality, int);
-  //@}
-
-  //@{
-  /**
    * Set/Get which LookingGlass device to use. DeviceIndex starts at 0 and
    * increases.
    */
@@ -195,9 +183,6 @@ public:
    */
   void SaveQuilt(const char* fileName);
 
-  VTK_DEPRECATED_IN_9_2_0("The render window argument is no longer used and should be removed")
-  void SaveQuilt(vtkOpenGLRenderWindow* rw, const char* fileName) { this->SaveQuilt(fileName); }
-
   /**
    * Get the extension of the movie file that will be written if the
    * user records a video quilt.
@@ -235,12 +220,6 @@ public:
    * video file into a format that HoloPlay Studio can read (such as MP4).
    */
   void StartRecordingQuilt(const char* fileName);
-
-  VTK_DEPRECATED_IN_9_2_0("The render window argument is no longer used and should be removed")
-  void StartRecordingQuilt(vtkOpenGLRenderWindow* rw, const char* fileName)
-  {
-    this->StartRecordingQuilt(fileName);
-  }
 
   /**
    * Write a frame to the movie file. StartRecordingQuilt() must have been
@@ -285,9 +264,6 @@ protected:
   ~vtkLookingGlassInterface() override;
 
   bool GetLookingGlassInfo();
-
-  VTK_DEPRECATED_IN_9_2_0("Quality is now based on device type.")
-  void SetupQuiltSettings(int i);
 
   /**
    * Setup quilt settings based on device type.
@@ -336,8 +312,6 @@ protected:
   int QuiltTiles[2];
   int RenderSize[2];
   int NumberOfTiles;
-
-  int QuiltQuality;
 
   // has the interface been initialized
   bool Initialized;

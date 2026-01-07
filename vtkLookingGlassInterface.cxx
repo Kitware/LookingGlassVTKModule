@@ -133,7 +133,6 @@ vtkLookingGlassInterface::vtkLookingGlassInterface()
   , Initialized(false)
   , RenderFramebuffer(nullptr)
   , QuiltFramebuffer(nullptr)
-  , QuiltQuality(1)
   , IsRecording(false)
   , AdjustCameraAspectRatio(1.777)
   , MovieImageBuffer(nullptr)
@@ -416,31 +415,6 @@ void vtkLookingGlassInterface::SetupQuiltSettings(const DeviceSettings& settings
   std::copy(settings.QuiltTiles, settings.QuiltTiles + 2, this->QuiltTiles);
   this->AdjustCameraAspectRatio = settings.AspectRatio;
 };
-
-// set up the quilt settings
-void vtkLookingGlassInterface::SetupQuiltSettings(int preset)
-{
-  // there are 3 presets:
-  switch (preset)
-  {
-    case 0:
-    { // standard
-      this->SetupQuiltSettings("standard");
-    }
-    break;
-    default:
-    case 1:
-    { // hires - i assume this is large or pro?
-      this->SetupQuiltSettings("large");
-    }
-    break;
-    case 2:
-    { // 8k
-      this->SetupQuiltSettings("8k");
-    }
-    break;
-  }
-}
 
 // set up quilt settings for a given device
 void vtkLookingGlassInterface::SetupQuiltSettings(const std::string& deviceType)
